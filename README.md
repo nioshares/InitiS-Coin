@@ -1,6 +1,6 @@
-# InitiS
+# Initi S
 
-## Compiling InitiS from source
+## Compiling Initi S from source
 
 ### Dependencies
 
@@ -46,7 +46,7 @@ Debian / Ubuntu one liner for all dependencies
 
 Clone recursively to pull-in needed submodule(s):
 
-`$ git clone --recursive https://github.com/InitiS-Coin/initi`
+`$ git clone --recursive https://github.com/nioshares/InitiS-Coin`
 
 If you already have a repo cloned, initialize and update:
 
@@ -62,7 +62,7 @@ invokes cmake commands as needed.
 * Install the dependencies
 * Change to the root of the source code directory, change to the most recent release branch, and build:
 
-        cd initi
+        cd InitiS-Coin
         git checkout master
         make
 
@@ -219,7 +219,7 @@ application.
 
 * To git clone, run:
 
-        git clone --recursive https://github.com/InitiS-Coin/initi.git
+        git clone --recursive https://github.com/nioshares/InitiS-Coin.git
 
 **Building**
 
@@ -227,7 +227,7 @@ application.
 
         cd ~/initi
 
-* **Optional**:If you would like a specific [version/tag](https://github.com/InitiS-Coin/initi/tags), do a git checkout for that version. eg. 'v2.0.3'. If you dont care about the version and just want binaries from master, skip this step:
+* **Optional**:If you would like a specific [version/tag](https://github.com/nioshares/InitiS-Coin/tags), do a git checkout for that version. eg. 'v2.0.3'. If you dont care about the version and just want binaries from master, skip this step:
 
         git checkout v2.0.3
 
