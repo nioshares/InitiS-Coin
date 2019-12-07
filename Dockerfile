@@ -144,4 +144,3 @@ EXPOSE 24247
 EXPOSE 24248
 
 ENTRYPOINT ["initisd", "--p2p-bind-ip=0.0.0.0", "--p2p-bind-port=24247", "--rpc-bind-ip=0.0.0.0", "--rpc-bind-port=24248", "--non-interactive", "--confirm-external-bind"]
-

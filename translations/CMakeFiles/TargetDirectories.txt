@@ -1,3 +1,0 @@
-/Users/quinton/Desktop/cutcoin/translations/CMakeFiles/rebuild_cache.dir
-/Users/quinton/Desktop/cutcoin/translations/CMakeFiles/edit_cache.dir
-/Users/quinton/Desktop/cutcoin/translations/CMakeFiles/generate_translations_header.dir
