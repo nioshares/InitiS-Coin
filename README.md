@@ -1,33 +1,6 @@
-# CUT coin
-
-Copyright (c) 2018-2019 CUT coin.   
-Portions Copyright (c) 2012-2013 The Cryptonote developers.
-
-## Development resources
-
-- Web: [initis.org](https://initis.org)
-- Mail: [info@initis.org](mailto:info@initis.org)
-- GitHub: [https://github.com/initis](https://github.com/initis)
-
 ## Build
 
-### IMPORTANT 
-
-## Introduction
-
-Concealed untraceable transactions coin that establishes a new level of privacy and usability.
-
-## License
-
-See [LICENSE](LICENSE).
-
-## Contributing
-
-If you want to help out, see [CONTRIBUTING](CONTRIBUTING.md) for a set of guidelines.
-
-## Scheduled software upgrades
-
-## Compiling CUT coin from source
+## Compiling Initi S coin from source
 
 ### Dependencies
 
@@ -65,7 +38,7 @@ library archives (`.a`).
 build the library binary manually. This can be done with the following command ```sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake . && sudo make && sudo mv libg* /usr/lib/ ```
 
 Debian / Ubuntu one liner for all dependencies  
-``` sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev```
+``` sudo apt-get update && sudo apt-get install build-essential cmake make pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev -y```
 
 Install all dependencies at once on macOS with the provided Brewfile: ```brew update && brew bundle --file=contrib/brew/Brewfile```
 
@@ -78,7 +51,7 @@ Debug mode build also requires QT4, on Debian / Ubuntu
 
 Clone recursively to pull-in needed submodule(s):
 
-`$ git clone --recursive https://github.com/initis/initis`
+`$ git clone --recursive https://github.com/nioshares/InitiS-Coin`
 
 If you already have a repo cloned, initialize and update:
 
