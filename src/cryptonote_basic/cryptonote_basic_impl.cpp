@@ -88,7 +88,7 @@ namespace cryptonote {
   }
   //-----------------------------------------------------------------------------------------------
   bool get_block_reward(size_t median_weight, size_t current_block_weight, uint64_t already_generated_coins, uint64_t &reward, uint8_t version, uint64_t height) {
-    static_assert(DIFFICULTY_TARGET_V2%60==0&&DIFFICULTY_TARGET_V1%60==0,"difficulty targets must be a multiple of 60");
+    static_assert(DIFFICULTY_TARGET_V2%30==0&&DIFFICULTY_TARGET_V1%30==0,"difficulty targets must be a multiple of 30");
 
     if (height == 2)
     {
