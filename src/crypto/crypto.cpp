@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -34,6 +35,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
 #include <boost/shared_ptr.hpp>
@@ -69,8 +71,17 @@ namespace crypto {
 #include "random.h"
   }
 
-  const crypto::public_key null_pkey = crypto::public_key{};
-  const crypto::secret_key null_skey = crypto::secret_key{};
+const crypto::public_key &NullKey::p()
+{
+  static crypto::public_key null_pkey = crypto::public_key{};
+  return null_pkey;
+}
+
+const crypto::secret_key &NullKey::s()
+{
+  static crypto::secret_key null_skey = crypto::secret_key{};
+  return null_skey;
+}
 
   static inline unsigned char *operator &(ec_point &point) {
     return &reinterpret_cast<unsigned char &>(point);

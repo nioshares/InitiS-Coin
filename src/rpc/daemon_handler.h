@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2017-2018, The Monero Project
 // 
 // All rights reserved.
@@ -90,6 +91,8 @@ class DaemonHandler : public RpcHandler
 
     void handle(const GetBlockHeaderByHeight::Request& req, GetBlockHeaderByHeight::Response& res);
 
+    void handle(const GetMiningInfo::Request& req, GetMiningInfo::Response& res);
+
     void handle(const GetBlockHeadersByHeight::Request& req, GetBlockHeadersByHeight::Response& res);
 
     void handle(const GetBlock::Request& req, GetBlock::Response& res);
@@ -126,9 +129,7 @@ class DaemonHandler : public RpcHandler
 
     void handle(const GetRPCVersion::Request& req, GetRPCVersion::Response& res);
 
-    void handle(const GetFeeEstimate::Request& req, GetFeeEstimate::Response& res);
-
-    void handle(const GetOutputDistribution::Request& req, GetOutputDistribution::Response& res);
+    void handle(const GetPerKBFeeEstimate::Request& req, GetPerKBFeeEstimate::Response& res);
 
     std::string handle(const std::string& request);
 

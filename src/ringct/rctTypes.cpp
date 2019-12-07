@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2016, Monero Research Labs
 //
 // Author: Shen Noether <shen.noether@gmx.com>
@@ -34,8 +35,8 @@
 using namespace crypto;
 using namespace std;
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "ringct"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "ringct"
 
 namespace rct {
 
@@ -217,7 +218,6 @@ namespace rct {
         {
             case RCTTypeSimple:
             case RCTTypeBulletproof:
-            case RCTTypeBulletproof2:
                 return true;
             default:
                 return false;
@@ -229,7 +229,6 @@ namespace rct {
         switch (type)
         {
             case RCTTypeBulletproof:
-            case RCTTypeBulletproof2:
                 return true;
             default:
                 return false;

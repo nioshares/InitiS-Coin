@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 //
 // All rights reserved.
@@ -37,13 +38,10 @@
 #include <boost/multi_index/global_fun.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/member.hpp>
-#include <boost/circular_buffer.hpp>
 #include <atomic>
-#include <functional>
 #include <unordered_map>
 #include <unordered_set>
 
-#include "span.h"
 #include "syncobj.h"
 #include "string_tools.h"
 #include "cryptonote_basic/cryptonote_basic.h"
@@ -58,7 +56,6 @@
 #include "cryptonote_basic/hardfork.h"
 #include "blockchain_db/blockchain_db.h"
 
-namespace master_nodes { class master_node_list; class deregister_vote_pool; };
 namespace tools { class Notify; }
 
 namespace cryptonote
@@ -76,15 +73,6 @@ namespace cryptonote
     db_async, //!< handle syncing calls instead of the backing db, asynchronously
     db_nosync //!< Leave syncing up to the backing db (safest, but slowest because of disk I/O)
   };
-
-  /** 
-   * @brief Callback routine that returns checkpoints data for specific network type
-   * 
-   * @param network network type
-   * 
-   * @return checkpoints data, empty span if there ain't any checkpoints for specific network type
-   */
-  typedef std::function<const epee::span<const unsigned char>(cryptonote::network_type network)> GetCheckpointsCallback;
 
   /************************************************************************/
   /*                                                                      */
@@ -115,41 +103,12 @@ namespace cryptonote
       uint64_t already_generated_coins; //!< the total coins minted after that block
     };
 
-    class BlockAddedHook
-    {
-    public:
-      virtual void block_added(const block& block, const std::vector<transaction>& txs) = 0;
-    };
-
-    class BlockchainDetachedHook
-    {
-    public:
-      virtual void blockchain_detached(uint64_t height) = 0;
-    };
-
-    class InitHook
-    {
-    public:
-      virtual void init() = 0;
-    };
-
-    class ValidateMinerTxHook
-    {
-    public:
-      virtual bool validate_miner_tx(const crypto::hash& prev_id, const cryptonote::transaction& miner_tx, uint64_t height, int hard_fork_version, block_reward_parts const &reward_parts) const = 0;
-    };
-
     /**
      * @brief Blockchain constructor
      *
      * @param tx_pool a reference to the transaction pool to be kept by the Blockchain
      */
-    Blockchain(tx_memory_pool& tx_pool, master_nodes::master_node_list& master_node_list, master_nodes::deregister_vote_pool &deregister_vote_pool);
-
-    /**
-     * @brief Blockchain destructor
-     */
-    ~Blockchain();
+    Blockchain(tx_memory_pool& tx_pool);
 
     /**
      * @brief Initialize the Blockchain state
@@ -159,11 +118,10 @@ namespace cryptonote
      * @param offline true if running offline, else false
      * @param test_options test parameters
      * @param fixed_difficulty fixed difficulty for testing purposes; 0 means disabled
-     * @param get_checkpoints if set, will be called to get checkpoints data
      *
      * @return true on success, false if any initialization steps fail
      */
-    bool init(BlockchainDB* db, const network_type nettype = MAINNET, bool offline = false, const cryptonote::test_options *test_options = NULL, difficulty_type fixed_difficulty = 0, const GetCheckpointsCallback& get_checkpoints = nullptr);
+    bool init(BlockchainDB* db, const network_type nettype = MAINNET, bool offline = false, const cryptonote::test_options *test_options = NULL, difficulty_type fixed_difficulty = 0);
 
     /**
      * @brief Initialize the Blockchain state
@@ -251,6 +209,10 @@ namespace cryptonote
      * @return true if the block was found, else false
      */
     bool get_block_by_hash(const crypto::hash &h, block &blk, bool *orphan = NULL) const;
+
+    crypto::hash get_prev_hash(const block &blk) const;
+
+    bool get_prev_hash(const block &blk, crypto::hash &h) const;
 
     /**
      * @brief performs some preprocessing on a group of incoming blocks to speed up verification
@@ -347,6 +309,8 @@ namespace cryptonote
      */
     bool add_new_block(const block& bl_, block_verification_context& bvc);
 
+    bool get_block_pos_hash(const block& b, crypto::hash& res) const;
+
     /**
      * @brief clears the blockchain and starts a new one
      *
@@ -370,6 +334,8 @@ namespace cryptonote
      */
     bool create_block_template(block& b, const account_public_address& miner_address, difficulty_type& di, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce);
 
+    bool create_pos_block_template(block& b, const account_public_address& miner_address, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward,
+                                   size_t reserve, uint64_t timestamp, crypto::hash &prev_crypto_hash);
     /**
      * @brief checks if a block is known about with a given hash
      *
@@ -540,13 +506,6 @@ namespace cryptonote
     bool get_output_distribution(uint64_t amount, uint64_t from_height, uint64_t to_height, uint64_t &start_height, std::vector<uint64_t> &distribution, uint64_t &base) const;
 
     /**
-     * @brief gets global output indexes that should not be used, i.e. registration tx outputs
-     *
-     * @param return-by-reference blacklist global indexes of rct outputs to ignore
-     */
-    bool get_output_blacklist(std::vector<uint64_t> &blacklist) const;
-
-    /**
      * @brief gets the global indices for outputs from a given transaction
      *
      * This function gets the global indices for all outputs belonging
@@ -554,12 +513,10 @@ namespace cryptonote
      *
      * @param tx_id the hash of the transaction to fetch indices for
      * @param indexs return-by-reference the global indices for the transaction's outputs
-     * @param n_txes how many txes in a row to get results for
      *
      * @return false if the transaction does not exist, or if no indices are found, otherwise true
      */
     bool get_tx_outputs_gindexs(const crypto::hash& tx_id, std::vector<uint64_t>& indexs) const;
-    bool get_tx_outputs_gindexs(const crypto::hash& tx_id, size_t n_txes, std::vector<std::vector<uint64_t>>& indexs) const;
 
     /**
      * @brief stores the blockchain
@@ -664,13 +621,6 @@ namespace cryptonote
     uint64_t get_current_cumulative_block_weight_limit() const;
 
     /**
-     * @brief gets the long term block weight for a new block
-     *
-     * @return the long term block weight
-     */
-    uint64_t get_next_long_term_block_weight(uint64_t block_weight) const;
-
-    /**
      * @brief gets the block weight median based on recent blocks (same window as for the limit)
      *
      * @return the median
@@ -716,8 +666,6 @@ namespace cryptonote
      */
     template<class t_ids_container, class t_tx_container, class t_missed_container>
     bool get_transactions_blobs(const t_ids_container& txs_ids, t_tx_container& txs, t_missed_container& missed_txs, bool pruned = false) const;
-    template<class t_ids_container, class t_tx_container, class t_missed_container>
-    bool get_split_transactions_blobs(const t_ids_container& txs_ids, t_tx_container& txs, t_missed_container& missed_txs) const;
     template<class t_ids_container, class t_tx_container, class t_missed_container>
     bool get_transactions(const t_ids_container& txs_ids, t_tx_container& txs, t_missed_container& missed_txs) const;
 
@@ -771,27 +719,14 @@ namespace cryptonote
     /**
      * @brief sets a block notify object to call for every new block
      *
-     * @param notify the notify object to call at every new block
+     * @param notify the notify object to cal at every new block
      */
     void set_block_notify(const std::shared_ptr<tools::Notify> &notify) { m_block_notify = notify; }
-
-    /**
-     * @brief sets a reorg notify object to call for every reorg
-     *
-     * @param notify the notify object to call at every reorg
-     */
-    void set_reorg_notify(const std::shared_ptr<tools::Notify> &notify) { m_reorg_notify = notify; }
 
     /**
      * @brief Put DB in safe sync mode
      */
     void safesyncmode(const bool onoff);
-
-    /**
-     * @brief Get the nettype
-     * @return the nettype
-     */
-    network_type nettype() const { return m_nettype; }
 
     /**
      * @brief set whether or not to show/print time statistics
@@ -871,7 +806,7 @@ namespace cryptonote
      * @param earliest_height the earliest height at which <version> is allowed
      * @param voting which version this node is voting for/using
      *
-     * @return whether the version queried is enabled 
+     * @return whether the version queried is enabled
      */
     bool get_hard_fork_voting_info(uint8_t version, uint32_t &window, uint32_t &votes, uint32_t &threshold, uint64_t &earliest_height, uint8_t &voting) const;
 
@@ -978,9 +913,11 @@ namespace cryptonote
      * @param amount the amount
      * @param offsets the indices (indexed to the amount) of the outputs
      * @param outputs return-by-reference the outputs collected
+     * @param txs unused, candidate for removal
      */
     void output_scan_worker(const uint64_t amount,const std::vector<uint64_t> &offsets,
-        std::vector<output_data_t> &outputs) const;
+        std::vector<output_data_t> &outputs, std::unordered_map<crypto::hash,
+        cryptonote::transaction> &txs) const;
 
     /**
      * @brief computes the "short" and "long" hashes for a set of blocks
@@ -989,7 +926,7 @@ namespace cryptonote
      * @param blocks the blocks to be hashed
      * @param map return-by-reference the hashes for each block
      */
-    void block_longhash_worker(uint64_t height, const epee::span<const block> &blocks,
+    void block_longhash_worker(uint64_t height, const std::vector<block> &blocks,
         std::unordered_map<crypto::hash, crypto::hash> &map) const;
 
     /**
@@ -999,7 +936,7 @@ namespace cryptonote
      */
     std::list<std::pair<block_extended_info,std::vector<crypto::hash>>> get_alternative_chains() const;
 
-    void add_txpool_tx(const crypto::hash &txid, const cryptonote::blobdata &blob, const txpool_tx_meta_t &meta);
+    void add_txpool_tx(transaction &tx, const txpool_tx_meta_t &meta);
     void update_txpool_tx(const crypto::hash &txid, const txpool_tx_meta_t &meta);
     void remove_txpool_tx(const crypto::hash &txid);
     uint64_t get_txpool_tx_count(bool include_unrelayed_txes = true) const;
@@ -1011,12 +948,6 @@ namespace cryptonote
     bool is_within_compiled_block_hash_area(uint64_t height) const;
     bool is_within_compiled_block_hash_area() const { return is_within_compiled_block_hash_area(m_db->height()); }
     uint64_t prevalidate_block_hashes(uint64_t height, const std::vector<crypto::hash> &hashes);
-    uint32_t get_blockchain_pruning_seed() const { return m_db->get_blockchain_pruning_seed(); }
-    bool prune_blockchain(uint32_t pruning_seed = 0);
-    bool update_blockchain_pruning();
-    bool check_blockchain_pruning();
-
-    bool calc_batched_governance_reward(uint64_t height, uint64_t &reward) const;
 
     void lock();
     void unlock();
@@ -1030,29 +961,7 @@ namespace cryptonote
      */
     void on_new_tx_from_block(const cryptonote::transaction &tx);
 
-    /**
-     * @brief add a hook for processing new blocks and rollbacks for reorgs
-     */
-    void hook_block_added        (BlockAddedHook& hook)         { m_block_added_hooks.push_back(&hook); }
-    void hook_blockchain_detached(BlockchainDetachedHook& hook) { m_blockchain_detached_hooks.push_back(&hook); }
-    void hook_init               (InitHook& hook)               { m_init_hooks.push_back(&hook); }
-    void hook_validate_miner_tx  (ValidateMinerTxHook& hook)    { m_validate_miner_tx_hooks.push_back(&hook); }
-
-    /**
-     * @brief returns the timestamps of the last N blocks
-     */
-    std::vector<time_t> get_last_block_timestamps(unsigned int blocks) const;
-
-    /**
-     * @brief removes blocks from the top of the blockchain
-     *
-     * @param nblocks number of blocks to be removed
-     */
-    void pop_blocks(uint64_t nblocks);
-
-#ifndef IN_UNIT_TESTS
   private:
-#endif
 
     // TODO: evaluate whether or not each of these typedefs are left over from blockchain_storage
     typedef std::unordered_map<crypto::hash, size_t> blocks_by_id_index;
@@ -1073,9 +982,6 @@ namespace cryptonote
     BlockchainDB* m_db;
 
     tx_memory_pool& m_tx_pool;
-
-    master_nodes::master_node_list&    m_master_node_list;
-    master_nodes::deregister_vote_pool& m_deregister_vote_pool;
 
     mutable epee::critical_section m_blockchain_lock; // TODO: add here reader/writer lock
 
@@ -1108,8 +1014,6 @@ namespace cryptonote
     std::vector<uint64_t> m_timestamps;
     std::vector<difficulty_type> m_difficulties;
     uint64_t m_timestamps_and_difficulties_height;
-    uint64_t m_long_term_block_weights_window;
-    uint64_t m_long_term_effective_median_block_weight;
 
     epee::critical_section m_difficulty_lock;
     crypto::hash m_difficulty_for_next_block_top_hash;
@@ -1125,10 +1029,6 @@ namespace cryptonote
     // some invalid blocks
     blocks_ext_by_hash m_invalid_blocks;     // crypto::hash -> block_extended_info
 
-    std::vector<BlockAddedHook*> m_block_added_hooks;
-    std::vector<BlockchainDetachedHook*> m_blockchain_detached_hooks;
-    std::vector<InitHook*> m_init_hooks;
-    std::vector<ValidateMinerTxHook*> m_validate_miner_tx_hooks;
 
     checkpoints m_checkpoints;
     bool m_enforce_dns_checkpoints;
@@ -1151,7 +1051,6 @@ namespace cryptonote
     bool m_btc_valid;
 
     std::shared_ptr<tools::Notify> m_block_notify;
-    std::shared_ptr<tools::Notify> m_reorg_notify;
 
     /**
      * @brief collects the keys for all outputs being "spent" as an input
@@ -1254,6 +1153,8 @@ namespace cryptonote
      */
     bool handle_block_to_main_chain(const block& bl, block_verification_context& bvc);
 
+    bool check_pos_block(const block& bl, difficulty_type difficulty, crypto::hash& pos_hash);
+
     /**
      * @brief validate and add a new block to the end of the blockchain
      *
@@ -1347,19 +1248,19 @@ namespace cryptonote
      * @param sz return-by-reference the list of weights
      * @param count the number of blocks to get weights for
      */
-    void get_last_n_blocks_weights(std::vector<uint64_t>& weights, size_t count) const;
+    void get_last_n_blocks_weights(std::vector<size_t>& weights, size_t count) const;
 
     /**
      * @brief checks if a transaction is unlocked (its outputs spendable)
      *
-     * This function checks to see if an output is unlocked.
+     * This function checks to see if a transaction is unlocked.
      * unlock_time is either a block index or a unix time.
      *
      * @param unlock_time the unlock parameter (height or time)
      *
      * @return true if spendable, otherwise false
      */
-    bool is_output_spendtime_unlocked(uint64_t unlock_time) const;
+    bool is_tx_spendtime_unlocked(uint64_t unlock_time) const;
 
     /**
      * @brief stores an invalid block in a separate container
@@ -1446,11 +1347,9 @@ namespace cryptonote
     /**
      * @brief calculate the block weight limit for the next block to be added
      *
-     * @param long_term_effective_median_block_weight optionally return that value
-     *
      * @return true
      */
-    bool update_next_cumulative_weight_limit(uint64_t *long_term_effective_median_block_weight = NULL);
+    bool update_next_cumulative_weight_limit();
     void return_tx_to_pool(std::vector<transaction> &txs);
 
     /**
@@ -1479,12 +1378,10 @@ namespace cryptonote
      * @brief loads block hashes from compiled-in data set
      *
      * A (possibly empty) set of block hashes can be compiled into the
-     * monero daemon binary.  This function loads those hashes into
+     * CUT Coin daemon binary.  This function loads those hashes into
      * a useful state.
-     * 
-     * @param get_checkpoints if set, will be called to get checkpoints data
      */
-    void load_compiled_in_block_hashes(const GetCheckpointsCallback& get_checkpoints);
+    void load_compiled_in_block_hashes();
 
     /**
      * @brief expands v2 transaction data from blockchain

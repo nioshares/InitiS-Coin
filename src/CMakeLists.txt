@@ -1,4 +1,4 @@
-# Copyright (c) 2018, The InitiS Project
+# Copyright (c) 2018-2019, CUT coin
 # Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
@@ -34,6 +34,11 @@ if (WIN32 OR STATIC)
   # miniupnp changed their static define
   add_definitions(-DMINIUPNP_STATICLIB)
 endif ()
+
+# warnings are cleared only for GCC on Linux
+if (NOT (MINGW OR APPLE OR FREEBSD OR OPENBSD OR DRAGONFLY))
+  add_compile_options("${WARNINGS_AS_ERRORS_FLAG}") # applies only to targets that follow
+endif()
 
 function (initis_private_headers group)
   source_group("${group}\\Private"
@@ -110,34 +115,33 @@ add_subdirectory(ringct)
 add_subdirectory(checkpoints)
 add_subdirectory(cryptonote_basic)
 add_subdirectory(cryptonote_core)
+add_subdirectory(mining)
 add_subdirectory(multisig)
-add_subdirectory(mnemonics)
-add_subdirectory(wallet)
-add_subdirectory(cryptonote_protocol)
-
+add_subdirectory(plant)
 if(NOT IOS)
-  if (NOT INITIS_DAEMON_AND_WALLET_ONLY AND NOT BUILD_INTEGRATION)
-    add_subdirectory(gen_multisig)
-    add_subdirectory(blockchain_utilities)
-  endif()
   add_subdirectory(blockchain_db)
+endif()
+add_subdirectory(mnemonics)
+if(NOT IOS)
   add_subdirectory(rpc)
   add_subdirectory(serialization)
+endif()
+add_subdirectory(wallet)
+if(NOT IOS)
   add_subdirectory(p2p)
+endif()
+add_subdirectory(cryptonote_protocol)
+if(NOT IOS)
+  add_subdirectory(simplewallet)
+  add_subdirectory(gen_multisig)
   add_subdirectory(daemonizer)
   add_subdirectory(daemon)
-  add_subdirectory(simplewallet)
+  add_subdirectory(blockchain_utilities)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
-  if (NOT INITIS_DAEMON_AND_WALLET_ONLY AND NOT BUILD_INTEGRATION)
-    add_subdirectory(debug_utilities)
-  endif()
+  add_subdirectory(debug_utilities)
 endif()
 
-if(PER_BLOCK_CHECKPOINT)
-  add_subdirectory(blocks)
-endif()
-
+add_subdirectory(blocks)
 add_subdirectory(device)
-add_subdirectory(device_trezor)

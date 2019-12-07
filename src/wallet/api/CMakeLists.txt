@@ -1,4 +1,4 @@
-# Copyright (c) 2018, The InitiS Project
+# Copyright (c) 2018-2019, CUT coin
 # Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
@@ -70,6 +70,7 @@ target_link_libraries(wallet_api
     common
     cryptonote_core
     mnemonics
+    plant
     ${LMDB_LIBRARY}
     ${Boost_CHRONO_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}

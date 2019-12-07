@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -49,7 +50,7 @@ class WalletSubaddress : public ::testing::Test
       catch (const std::exception& e)
       {
         LOG_ERROR("failed to generate wallet: " << e.what());
-        throw;
+        throw e;
       }
 
       w1.add_subaddress_account(test_label);

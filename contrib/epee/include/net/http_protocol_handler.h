@@ -37,8 +37,8 @@
 #include "http_auth.h"
 #include "http_base.h"
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "net.http"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net.http"
 
 namespace epee
 {

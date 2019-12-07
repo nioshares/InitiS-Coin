@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2017-2018, The Monero Project
 //
 // All rights reserved.
@@ -47,9 +48,6 @@ namespace
     "8b655970153799af2aeadc9ff1add0ea6c7251d54154cfa92c173a0dd39c1f94"
     "6c7251d54154cfa92c173a0dd39c1f948b655970153799af2aeadc9ff1add0ea";
 
-  template<typename T> void *addressof(T &t) { return &t; }
-  template<> void *addressof(crypto::secret_key &k) { return addressof(unwrap(unwrap(k))); }
-
   template<typename T>
   bool is_formatted()
   {
@@ -58,7 +56,7 @@ namespace
     static_assert(alignof(T) == 1, "T must have 1 byte alignment");
     static_assert(sizeof(T) <= sizeof(source), "T is too large for source");
     static_assert(sizeof(T) * 2 <= sizeof(expected), "T is too large for destination");
-    std::memcpy(addressof(value), source, sizeof(T));
+    std::memcpy(std::addressof(value), source, sizeof(T));
 
     std::stringstream out;
     out << "BEGIN" << value << "END";  
@@ -81,8 +79,8 @@ TEST(Crypto, null_keys)
 {
   char zero[32];
   memset(zero, 0, 32);
-  ASSERT_EQ(memcmp(crypto::null_skey.data, zero, 32), 0);
-  ASSERT_EQ(memcmp(crypto::null_pkey.data, zero, 32), 0);
+  ASSERT_EQ(memcmp(crypto::NullKey::s().data, zero, 32), 0);
+  ASSERT_EQ(memcmp(crypto::NullKey::p().data, zero, 32), 0);
 }
 
 TEST(Crypto, verify_32)

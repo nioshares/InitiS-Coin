@@ -1,4 +1,4 @@
-# Copyright (c) 2018, The InitiS Project
+# Copyright (c) 2018-2019, CUT coin
 # Copyright (c) 2017-2018, The Monero Project
 #
 # All rights reserved.
@@ -51,5 +51,5 @@ add_dependencies(gen_multisig
   version)
 set_property(TARGET gen_multisig
   PROPERTY
-    OUTPUT_NAME "initi-gen-trusted-multisig")
+    OUTPUT_NAME "initis-gen-trusted-multisig")
 install(TARGETS gen_multisig DESTINATION bin)

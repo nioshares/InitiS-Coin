@@ -23,7 +23,6 @@
 
 find_path(Readline_ROOT_DIR
     NAMES include/readline/readline.h
-    HINTS ENV READLINE_ROOT_DIR
     PATHS /usr/local/opt/readline/ /opt/local/ /usr/local/ /usr/
     NO_DEFAULT_PATH
 )
@@ -41,7 +40,7 @@ find_library(Readline_LIBRARY
 )
 
 find_library(Termcap_LIBRARY
-  NAMES tinfo termcap ncurses ncursesw cursesw curses
+  NAMES tinfo termcap ncursesw ncurses cursesw curses
 )
 
 if(Readline_INCLUDE_DIR AND Readline_LIBRARY)
@@ -67,9 +66,7 @@ check_function_exists(rl_copy_text HAVE_COPY_TEXT)
 check_function_exists(rl_filename_completion_function HAVE_COMPLETION_FUNCTION)
 
 if(NOT HAVE_COMPLETION_FUNCTION)
-  if (Readline_LIBRARY)
-    set(CMAKE_REQUIRED_LIBRARIES ${Readline_LIBRARY} ${Termcap_LIBRARY})
-  endif(Readline_LIBRARY)
+  set(CMAKE_REQUIRED_LIBRARIES ${Readline_LIBRARY} ${Termcap_LIBRARY})
   check_function_exists(rl_copy_text HAVE_COPY_TEXT_TC)
   check_function_exists(rl_filename_completion_function HAVE_COMPLETION_FUNCTION_TC)
   set(HAVE_COMPLETION_FUNCTION ${HAVE_COMPLETION_FUNCTION_TC})

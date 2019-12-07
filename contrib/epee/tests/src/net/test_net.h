@@ -29,9 +29,7 @@
 #include <boost/thread.hpp>
 #include <boost/bind.hpp> 
 
-#include "net/abstract_tcp_server2.h"
-#include "net/levin_protocol_handler.h"
-#include "net/levin_protocol_handler_async.h"
+#include "net/levin_server_cp2.h"
 #include "storages/abstract_invoke.h"
 
 namespace epee

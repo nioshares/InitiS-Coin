@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2018, The Monero Project
 // 
 // All rights reserved.
@@ -39,7 +40,7 @@ class Notify
 public:
   Notify(const char *spec);
 
-  int notify(const char *tag, const char *s, ...);
+  int notify(const char *parameter);
 
 private:
   std::string filename;

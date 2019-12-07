@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 //
 // All rights reserved.
 //
@@ -37,14 +37,12 @@
 #include "string_tools.h"
 #include "version.h"
 
-#include "common/initis_integration_test_hooks.h"
-
 #if defined(WIN32)
 #include <crtdbg.h>
 #endif
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "wallet.wallet2"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "wallet.wallet2"
 
 // workaround for a suspected bug in pthread/kernel on MacOS X
 #ifdef __APPLE__
@@ -109,6 +107,7 @@ namespace wallet_args
     const command_line::arg_descriptor<std::string> arg_log_file = {"log-file", wallet_args::tr("Specify log file"), ""};
     const command_line::arg_descriptor<std::string> arg_config_file = {"config-file", wallet_args::tr("Config file"), "", true};
 
+
     std::string lang = i18n_get_language();
     tools::on_startup();
 #ifdef NDEBUG
@@ -129,11 +128,7 @@ namespace wallet_args
     command_line::add_arg(desc_params, arg_max_concurrency);
     command_line::add_arg(desc_params, arg_config_file);
 
-#if defined(INITIS_ENABLE_INTEGRATION_TEST_HOOKS)
-    command_line::add_arg(desc_params, initi::arg_integration_test_shared_mem_name);
-#endif
-
-    i18n_set_language("translations", "initi", lang);
+    i18n_set_language("translations", "monero", lang);
 
     po::options_description desc_all;
     desc_all.add(desc_general).add(desc_params);
@@ -144,17 +139,10 @@ namespace wallet_args
       auto parser = po::command_line_parser(argc, argv).options(desc_all).positional(positional_options);
       po::store(parser.run(), vm);
 
-#if defined(INITIS_ENABLE_INTEGRATION_TEST_HOOKS)
-      {
-        const std::string arg_shared_mem_name = command_line::get_arg(vm, initi::arg_integration_test_shared_mem_name);
-        initi::init_integration_test_context(arg_shared_mem_name);
-      }
-#endif
-
       if (command_line::get_arg(vm, command_line::arg_help))
       {
-        Print(print) << "InitiS '" << INITIS_RELEASE_NAME << "' (v" << INITIS_VERSION_FULL << ")" << ENDL;
-        Print(print) << wallet_args::tr("This is the command line initi wallet. It needs to connect to a initi\n"
+        Print(print) << "CUT coin '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL;
+        Print(print) << wallet_args::tr("This is the command line CUT coin wallet. It needs to connect to a initis\n"
 												  "daemon to work correctly.") << ENDL;
         Print(print) << wallet_args::tr("Usage:") << ENDL << "  " << usage;
         Print(print) << desc_all;
@@ -163,7 +151,7 @@ namespace wallet_args
       }
       else if (command_line::get_arg(vm, command_line::arg_version))
       {
-        Print(print) << "InitiS '" << INITIS_RELEASE_NAME << "' (v" << INITIS_VERSION_FULL << ")";
+        Print(print) << "CUT coin '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")";
         should_terminate = true;
         return true;
       }
@@ -214,23 +202,15 @@ namespace wallet_args
     if (!command_line::is_arg_defaulted(vm, arg_max_concurrency))
       tools::set_max_concurrency(command_line::get_arg(vm, arg_max_concurrency));
 
-    Print(print) << "InitiS '" << INITIS_RELEASE_NAME << "' (v" << INITIS_VERSION_FULL << ")";
+    Print(print) << "CUT coin '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")";
 
     if (!command_line::is_arg_defaulted(vm, arg_log_level))
       MINFO("Setting log level = " << command_line::get_arg(vm, arg_log_level));
     else
-      MINFO("Setting log levels = " << getenv("INITIS_LOGS"));
+      MINFO("Setting log levels = " << getenv("MONERO_LOGS"));
     MINFO(wallet_args::tr("Logging to: ") << log_path);
 
     Print(print) << boost::format(wallet_args::tr("Logging to %s")) % log_path;
-
-    const ssize_t lockable_memory = tools::get_lockable_memory();
-    if (lockable_memory >= 0 && lockable_memory < 256 * 4096) // 256 pages -> at least 256 secret keys and other such small/medium objects
-      Print(print) << tr("WARNING: You may not have a high enough lockable memory limit")
-#ifdef ELPP_OS_UNIX
-        << ", " << tr("see ulimit -l")
-#endif
-        ;
 
     return {std::move(vm), should_terminate};
   }

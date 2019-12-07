@@ -1,4 +1,4 @@
-# Copyright (c) 2018, The InitiS Project
+# Copyright (c) 2018-2019, CUT coin
 # Copyright (c) 2016-2018, The Monero Project
 #
 # All rights reserved.

@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -38,7 +39,6 @@
 #include "double_spend.h"
 #include "integer_overflow.h"
 #include "ring_signature_1.h"
-#include "master_nodes.h"
 #include "tx_validation.h"
 #include "v2_tests.h"
 #include "rct.h"

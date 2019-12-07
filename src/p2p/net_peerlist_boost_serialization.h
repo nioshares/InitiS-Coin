@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -33,10 +34,6 @@
 #include "net/net_utils_base.h"
 #include "p2p/p2p_protocol_defs.h"
 
-#ifdef CRYPTONOTE_PRUNING_DEBUG_SPOOF_SEED
-#include "common/pruning.h"
-#endif
-
 namespace boost
 {
   namespace serialization
@@ -60,9 +57,6 @@ namespace boost
         case epee::net_utils::ipv4_network_address::ID:
 	  do_serialize(a, na, epee::net_utils::ipv4_network_address{0, 0});
 	  break; 
-        case epee::net_utils::ipv6_network_address::ID:
-	  do_serialize(a, na, epee::net_utils::ipv6_network_address{"", 0});
-	  break; 
         default:
           throw std::runtime_error("Unsupported network address type");
       }
@@ -79,35 +73,11 @@ namespace boost
     }
 
     template <class Archive, class ver_type>
-    inline void serialize(Archive &a, epee::net_utils::ipv6_network_address& na, const ver_type ver)
-    {
-      std::string ip{na.ip()};
-      uint16_t port{na.port()};
-      a & ip;
-      a & port;
-      if (!typename Archive::is_saving())
-        na = epee::net_utils::ipv6_network_address{ip, port};
-    }
-
-    template <class Archive, class ver_type>
     inline void serialize(Archive &a,  nodetool::peerlist_entry& pl, const ver_type ver)
     {
       a & pl.adr;
       a & pl.id;
       a & pl.last_seen;
-      if (ver < 1)
-      {
-        if (!typename Archive::is_saving())
-          pl.pruning_seed = 0;
-        return;
-      }
-      a & pl.pruning_seed;
-#ifdef CRYPTONOTE_PRUNING_DEBUG_SPOOF_SEED
-      if (!typename Archive::is_saving())
-      {
-        pl.pruning_seed = tools::make_pruning_seed(1+pl.adr.as<epee::net_utils::ipv4_network_address>().ip() % (1<<CRYPTONOTE_PRUNING_LOG_STRIPES), CRYPTONOTE_PRUNING_LOG_STRIPES);
-      }
-#endif
     }
 
     template <class Archive, class ver_type>

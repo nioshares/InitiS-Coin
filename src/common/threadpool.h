@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2017-2018, The Monero Project
 //
 // All rights reserved.
@@ -72,8 +73,6 @@ public:
   unsigned int get_max_concurrency() const;
 
   ~threadpool();
-  void stop();
-  void start(unsigned int max_threads = 0);
 
   private:
     threadpool(unsigned int max_threads = 0);

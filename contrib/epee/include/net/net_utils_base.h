@@ -36,8 +36,8 @@
 #include "serialization/keyvalue_serialization.h"
 #include "misc_log_ex.h"
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "net"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net"
 
 #ifndef MAKE_IP
 #define MAKE_IP( a1, a2, a3, a4 )	(a1|(a2<<8)|(a3<<16)|(a4<<24))
@@ -87,48 +87,6 @@ namespace net_utils
 	inline bool operator>(const ipv4_network_address& lhs, const ipv4_network_address& rhs) noexcept
 	{ return rhs.less(lhs); }
 	inline bool operator>=(const ipv4_network_address& lhs, const ipv4_network_address& rhs) noexcept
-	{ return !lhs.less(rhs); }
-
-	class ipv6_network_address
-	{
-		std::string m_ip;
-		uint16_t m_port;
-
-	public:
-		ipv6_network_address(const std::string& ip, uint16_t port) noexcept
-			: m_ip(ip), m_port(port) {}
-
-		bool equal(const ipv6_network_address& other) const noexcept;
-		bool less(const ipv6_network_address& other) const noexcept;
-		bool is_same_host(const ipv6_network_address& other) const noexcept
-		{ return ip() == other.ip(); }
-
-		std::string ip() const noexcept { return m_ip; }
-		uint16_t port() const noexcept { return m_port; }
-		std::string str() const;
-		std::string host_str() const;
-		bool is_loopback() const;
-		bool is_local() const;
-		static constexpr uint8_t get_type_id() noexcept { return ID; }
-
-		static const uint8_t ID = 2;
-		BEGIN_KV_SERIALIZE_MAP()
-			KV_SERIALIZE(m_ip)
-			KV_SERIALIZE(m_port)
-		END_KV_SERIALIZE_MAP()
-	};
-
-	inline bool operator==(const ipv6_network_address& lhs, const ipv6_network_address& rhs) noexcept
-	{ return lhs.equal(rhs); }
-	inline bool operator!=(const ipv6_network_address& lhs, const ipv6_network_address& rhs) noexcept
-	{ return !lhs.equal(rhs); }
-	inline bool operator<(const ipv6_network_address& lhs, const ipv6_network_address& rhs) noexcept
-	{ return lhs.less(rhs); }
-	inline bool operator<=(const ipv6_network_address& lhs, const ipv6_network_address& rhs) noexcept
-	{ return !rhs.less(lhs); }
-	inline bool operator>(const ipv6_network_address& lhs, const ipv6_network_address& rhs) noexcept
-	{ return rhs.less(lhs); }
-	inline bool operator>=(const ipv6_network_address& lhs, const ipv6_network_address& rhs) noexcept
 	{ return !lhs.less(rhs); }
 
 	class network_address
@@ -235,32 +193,6 @@ namespace net_utils
 					}
 					break;
 				}
-				case ipv6_network_address::ID:
-				{
-					if (!is_store)
-					{
-						const_cast<network_address&>(this_ref) = ipv6_network_address{"", 0};
-						auto &addr = this_ref.template as_mutable<ipv6_network_address>();
-						if (epee::serialization::selector<is_store>::serialize(addr, stg, hparent_section, "addr"))
-							MDEBUG("Found as addr: " << this_ref.str());
-						else if (epee::serialization::selector<is_store>::serialize(addr, stg, hparent_section, "template as<ipv6_network_address>()"))
-							MDEBUG("Found as template as<ipv6_network_address>(): " << this_ref.str());
-						else if (epee::serialization::selector<is_store>::serialize(addr, stg, hparent_section, "template as_mutable<ipv6_network_address>()"))
-							MDEBUG("Found as template as_mutable<ipv6_network_address>(): " << this_ref.str());
-						else
-						{
-							MWARNING("Address not found");
-							return false;
-						}
-					}
-					else
-					{
-						auto &addr = this_ref.template as_mutable<ipv6_network_address>();
-						if (!epee::serialization::selector<is_store>::serialize(addr, stg, hparent_section, "addr"))
-							return false;
-					}
-					break;
-				}
 				default: MERROR("Unsupported network address type: " << (unsigned)type); return false;
 			}
 		END_KV_SERIALIZE_MAP()
@@ -296,8 +228,6 @@ namespace net_utils
     uint64_t m_send_cnt;
     double m_current_speed_down;
     double m_current_speed_up;
-    double m_max_speed_down;
-    double m_max_speed_up;
 
     connection_context_base(boost::uuids::uuid connection_id,
                             const network_address &remote_address, bool is_income,
@@ -312,9 +242,7 @@ namespace net_utils
                                             m_recv_cnt(recv_cnt),
                                             m_send_cnt(send_cnt),
                                             m_current_speed_down(0),
-                                            m_current_speed_up(0),
-                                            m_max_speed_down(0),
-                                            m_max_speed_up(0)
+                                            m_current_speed_up(0)
     {}
 
     connection_context_base(): m_connection_id(),
@@ -326,9 +254,7 @@ namespace net_utils
                                m_recv_cnt(0),
                                m_send_cnt(0),
                                m_current_speed_down(0),
-                               m_current_speed_up(0),
-                               m_max_speed_down(0),
-                               m_max_speed_up(0)
+                               m_current_speed_up(0)
     {}
 
     connection_context_base& operator=(const connection_context_base& a)

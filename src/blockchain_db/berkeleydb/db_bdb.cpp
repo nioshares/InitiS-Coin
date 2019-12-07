@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // All rights reserved.
 //
@@ -235,12 +236,15 @@ void BlockchainBDB::add_block(const block& blk, size_t block_weight, const diffi
 
     if (m_height > 0)
     {
-        Dbt_copy<crypto::hash> parent_key(blk.prev_id);
+        crypto::hash prev_id;
+        if (!get_prev_hash(blk, prev_id))
+          throw0(BLOCK_PARENT_DNE("Could not get parent block hash"));
+        Dbt_copy<crypto::hash> parent_key(prev_id);
         Dbt_copy<uint32_t> parent_h;
         if (m_block_heights->get(DB_DEFAULT_TX, &parent_key, &parent_h, 0))
         {
             LOG_PRINT_L3("m_height: " << m_height);
-            LOG_PRINT_L3("parent_key: " << blk.prev_id);
+            LOG_PRINT_L3("parent_key: " << prev_id);
             throw0(DB_ERROR("Failed to get top block hash to check for new block's parent"));
         }
         uint32_t parent_height = parent_h;
@@ -712,6 +716,29 @@ bool BlockchainBDB::for_all_outputs(std::function<bool(uint64_t amount, const cr
 
     cur.close();
     return ret;
+}
+
+blobdata BlockchainBDB::output_to_blob(const tx_out& output) const
+{
+    LOG_PRINT_L3("BlockchainBDB::" << __func__);
+    blobdata b;
+    if (!t_serializable_object_to_blob(output, b))
+        throw1(DB_ERROR("Error serializing output to blob"));
+    return b;
+}
+
+tx_out BlockchainBDB::output_from_blob(const blobdata& blob) const
+{
+    LOG_PRINT_L3("BlockchainBDB::" << __func__);
+    std::stringstream ss;
+    ss << blob;
+    binary_archive<false> ba(ss);
+    tx_out o;
+
+    if (!(::serialization::serialize(ba, o)))
+        throw1(DB_ERROR("Error deserializing tx output blob"));
+
+    return o;
 }
 
 uint64_t BlockchainBDB::get_output_global_index(const uint64_t& amount, const uint64_t& index)
@@ -1632,7 +1659,7 @@ output_data_t BlockchainBDB::get_output_key(const uint64_t& global_index) const
     return v;
 }
 
-output_data_t BlockchainBDB::get_output_key(const uint64_t& amount, const uint64_t& index) const
+output_data_t BlockchainBDB::get_output_key(const uint64_t& amount, const uint64_t& index)
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
     check_open();
@@ -1641,7 +1668,7 @@ output_data_t BlockchainBDB::get_output_key(const uint64_t& amount, const uint64
     return get_output_key(glob_index);
 }
 
-tx_out_index BlockchainBDB::get_output_tx_and_index(const uint64_t& amount, const uint64_t& index) const
+tx_out_index BlockchainBDB::get_output_tx_and_index(const uint64_t& amount, const uint64_t& index)
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
     std::vector < uint64_t > offsets;
@@ -2117,7 +2144,7 @@ void BlockchainBDB::get_output_global_indices(const uint64_t& amount, const std:
 
 }
 
-void BlockchainBDB::get_output_key(const uint64_t &amount, const std::vector<uint64_t> &offsets, std::vector<output_data_t> &outputs) const
+void BlockchainBDB::get_output_key(const uint64_t &amount, const std::vector<uint64_t> &offsets, std::vector<output_data_t> &outputs)
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
     check_open();
@@ -2321,19 +2348,6 @@ void BlockchainBDB::fixup()
   LOG_PRINT_L3("BlockchainBDB::" << __func__);
   // Always call parent as well
   BlockchainDB::fixup();
-}
-
-void BlockchainBDB::set_master_node_data(const std::string& data)
-{
-}
-
-bool BlockchainBDB::get_master_node_data(std::string& data)
-{
-  return false;
-}
-
-void BlockchainBDB::clear_master_node_data()
-{
 }
 
 }  // namespace cryptonote

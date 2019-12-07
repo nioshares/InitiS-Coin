@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -30,7 +31,7 @@
 
 #include "gtest/gtest.h"
 
-#include "int-util.h"
+#include "common/int-util.h"
 
 namespace
 {

@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 // 
 // All rights reserved.
 // 
@@ -31,14 +31,13 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/filesystem.hpp>
-#include "common/util.h"
 #include "misc_log_ex.h"
 #include "misc_language.h"
 #include "wallet_errors.h"
 #include "ringdb.h"
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "wallet.ringdb"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "wallet.ringdb"
 
 static const char zerokey[8] = {0};
 static const MDB_val zerokeyval = { sizeof(zerokey), (void *)zerokey };

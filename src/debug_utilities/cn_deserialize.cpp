@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 //
 // All rights reserved.
 //
@@ -36,8 +36,8 @@
 #include "common/command_line.h"
 #include "version.h"
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "debugtools.deserialize"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "debugtools.deserialize"
 
 namespace po = boost::program_options;
 using namespace epee;
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
 
   if (command_line::get_arg(vm, command_line::arg_help))
   {
-    std::cout << "InitiS '" << INITIS_RELEASE_NAME << "' (v" << INITIS_VERSION_FULL << ")" << ENDL << ENDL;
+    std::cout << "CUT Coin '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 1;
   }
@@ -170,7 +170,6 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  bool full;
   cryptonote::block block;
   cryptonote::transaction tx;
   std::vector<cryptonote::tx_extra_field> fields;
@@ -181,9 +180,11 @@ int main(int argc, char* argv[])
   }
   else if (cryptonote::parse_and_validate_tx_from_blob(blob, tx) || cryptonote::parse_and_validate_tx_base_from_blob(blob, tx))
   {
+/*
     if (tx.pruned)
       std::cout << "Parsed pruned transaction:" << std::endl;
     else
+*/
       std::cout << "Parsed transaction:" << std::endl;
     std::cout << cryptonote::obj_to_json_str(tx) << std::endl;
 
@@ -200,9 +201,9 @@ int main(int argc, char* argv[])
       std::cout << "No fields were found in tx_extra" << std::endl;
     }
   }
-  else if (((full = cryptonote::parse_tx_extra(std::vector<uint8_t>(blob.begin(), blob.end()), fields)) || true) && !fields.empty())
+  else if (cryptonote::parse_tx_extra(std::vector<uint8_t>(blob.begin(), blob.end()), fields) && !fields.empty())
   {
-    std::cout << "Parsed" << (full ? "" : " partial") << " tx_extra:" << std::endl;
+    std::cout << "Parsed tx_extra:" << std::endl;
     print_extra_fields(fields);
   }
   else

@@ -1,4 +1,4 @@
-# Copyright (c) 2018, The InitiS Project
+# Copyright (c) 2018-2019, CUT coin
 # Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
@@ -46,9 +46,7 @@ set(crypto_sources
   random.c
   skein.c
   slow-hash.c
-  cn_conceal.cpp
-  tree-hash.c
-  aux_hash.c)
+  tree-hash.c)
 
 set(crypto_headers)
 
@@ -69,11 +67,7 @@ set(crypto_private_headers
   oaes_lib.h
   random.h
   skein.h
-  aux_hash.h
-  cn_conceal.hpp
-  skein_port.h
-  soft_aes.hpp
-  coin_algos.hpp)
+  skein_port.h)
 
 initis_private_headers(cncrypto
   ${crypto_private_headers})
@@ -89,7 +83,7 @@ target_link_libraries(cncrypto
   PRIVATE
     ${EXTRA_LIBRARIES})
 
-	if (ARM)
+if (ARM)
   option(NO_OPTIMIZED_MULTIPLY_ON_ARM
 	   "Compute multiply using generic C implementation instead of ARM ASM" OFF)
   if(NO_OPTIMIZED_MULTIPLY_ON_ARM)

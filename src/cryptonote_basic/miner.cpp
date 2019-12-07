@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 //
 // All rights reserved.
 //
@@ -34,6 +34,8 @@
 #include <boost/utility/value_init.hpp>
 #include <boost/interprocess/detail/atomic.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/limits.hpp>
+#include "include_base_utils.h"
 #include "misc_language.h"
 #include "syncobj.h"
 #include "cryptonote_basic_impl.h"
@@ -53,32 +55,31 @@
   #include <mach/mach_host.h>
   #include <AvailabilityMacros.h>
   #include <TargetConditionals.h>
-#elif defined(__linux__)
-  #include <unistd.h>
-  #include <sys/resource.h>
-  #include <sys/times.h>
-  #include <time.h>
-#elif defined(__FreeBSD__)
-  #include <devstat.h>
-  #include <errno.h>
-  #include <fcntl.h>
-  #include <machine/apm_bios.h>
-  #include <stdio.h>
-  #include <sys/resource.h>
-  #include <sys/sysctl.h>
-  #include <sys/times.h>
-  #include <sys/types.h>
-  #include <unistd.h>
 #endif
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "miner"
+#ifdef __FreeBSD__
+#include <devstat.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <machine/apm_bios.h>
+#include <stdio.h>
+#include <sys/resource.h>
+#include <sys/sysctl.h>
+#include <sys/times.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "miner"
 
 using namespace epee;
 
 #include "miner.h"
 
 
+extern "C" void slow_hash_allocate_state();
+extern "C" void slow_hash_free_state();
 namespace cryptonote
 {
 
@@ -146,7 +147,7 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------------
   bool miner::request_block_template()
   {
-    block bl;
+    block bl = AUTO_VAL_INIT(bl);
     difficulty_type di = AUTO_VAL_INIT(di);
     uint64_t height = AUTO_VAL_INIT(height);
     uint64_t expected_reward; //only used for RPC calls - could possibly be useful here too?
@@ -201,7 +202,7 @@ namespace cryptonote
         float hr = static_cast<float>(total_hr)/static_cast<float>(m_last_hash_rates.size());
         const auto flags = std::cout.flags();
         const auto precision = std::cout.precision();
-        std::cout << "hashrate: " << std::setprecision(4) << std::fixed << hr << std::setiosflags(flags) << std::setprecision(precision) << ENDL;
+        std::cout << "hashrate: " << std::setprecision(4) << std::fixed << hr << flags << precision << ENDL;
       }
     }
     m_last_hr_merge_time = misc_utils::get_tick_count();
@@ -444,6 +445,7 @@ namespace cryptonote
     difficulty_type local_diff = 0;
     uint32_t local_template_ver = 0;
     block b;
+    slow_hash_allocate_state();
     while(!m_stop)
     {
       if(m_pausers_count)//anti split workaround
@@ -505,6 +507,7 @@ namespace cryptonote
       nonce+=m_threads_total;
       ++m_hashes;
     }
+    slow_hash_free_state();
     MGINFO("Miner thread stopped ["<< th_local_index << "]");
     return true;
   }
@@ -635,7 +638,7 @@ namespace cryptonote
         boost::tribool battery_powered(on_battery_power());
         if(!indeterminate( battery_powered ))
         {
-          on_ac_power = !(bool)battery_powered;
+          on_ac_power = !static_cast<bool>(battery_powered);
         }
       }
 

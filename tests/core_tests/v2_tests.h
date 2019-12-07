@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -79,7 +80,7 @@ private:
 
 template<>
 struct get_test_options<gen_v2_tx_validation_base> {
-  const std::vector<std::pair<uint8_t, uint64_t>> hard_forks = {std::make_pair(1, 0), std::make_pair(2, 1)};
+  const std::pair<uint8_t, uint64_t> hard_forks[3] = {std::make_pair(1, 0), std::make_pair(2, 1), std::make_pair(0, 0)};
   const cryptonote::test_options test_options = {
     hard_forks
   };

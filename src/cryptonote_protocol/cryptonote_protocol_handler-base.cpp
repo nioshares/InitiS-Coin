@@ -2,8 +2,8 @@
 /// @author rfree (current maintainer in monero.cc project)
 /// @brief This is the place to implement our handlers for protocol network actions, e.g. for ratelimit for download-requests
 
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 // 
 // All rights reserved.
 // 
@@ -31,8 +31,20 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <boost/asio.hpp>
 #include <string>
 #include <vector>
+#include <boost/noncopyable.hpp>
+#include <boost/shared_ptr.hpp>
+#include <atomic>
+
+#include <boost/asio.hpp>
+#include <boost/array.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/interprocess/detail/atomic.hpp>
+#include <boost/thread/thread.hpp>
 
 #include <memory>
 
@@ -40,21 +52,31 @@
 
 #include "net/net_utils_base.h" 
 #include "misc_log_ex.h" 
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+#include <boost/uuid/random_generator.hpp>
 #include <boost/chrono.hpp>
+#include <boost/utility/value_init.hpp>
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp> 
 #include "misc_language.h"
 #include "pragma_comp_defs.h"
+#include <sstream>
+#include <iomanip>
 #include <algorithm>
 
+
+#include <boost/asio/basic_socket.hpp>
+#include <boost/asio/ip/unicast.hpp>
 
 #include "cryptonote_protocol_handler.h"
 #include "net/network_throttle.hpp"
 
 #include "cryptonote_core/cryptonote_core.h" // e.g. for the send_stop_signal()
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "net.cn"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net.cn"
 
 // ################################################################################################
 // ################################################################################################

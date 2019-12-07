@@ -30,10 +30,9 @@
 
 #include "levin_base.h"
 #include "serializeble_struct_helper.h"
-#include "int-util.h"
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "net"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net"
 
 namespace epee
 {
@@ -44,11 +43,11 @@ namespace levin
 	{
 		buff.resize(sizeof(levin::bucket_head));
 		levin::bucket_head& head = *(levin::bucket_head*)(&buff[0]);
-		head.m_signature = SWAP64LE(LEVIN_SIGNATURE);
+		head.m_signature = LEVIN_SIGNATURE;
 		head.m_cb = 0;
 		head.m_have_to_return_data = true;
-		head.m_command = SWAP32LE(command_id);
-		head.m_return_code = SWAP32LE(1);
+		head.m_command = command_id;
+		head.m_return_code = 1;
 		head.m_reservedA = rand(); //probably some flags in future
 		head.m_reservedB = rand(); //probably some check summ in future
 
@@ -56,7 +55,7 @@ namespace levin
 		if(!StorageNamed::save_struct_as_storage_to_buff_t<t_struct, StorageNamed::DefaultStorageType>(t, buff_strg))
 			return false;
 		
-		head.m_cb = SWAP64LE(buff_strg.size());
+		head.m_cb = buff_strg.size();
 		buff.append(buff_strg);
 		return true;
 	}
@@ -66,15 +65,15 @@ namespace levin
 	{
 		buff.resize(sizeof(levin::bucket_head));
 		levin::bucket_head& head = *(levin::bucket_head*)(&buff[0]);
-		head.m_signature = SWAP64LE(LEVIN_SIGNATURE);
+		head.m_signature = LEVIN_SIGNATURE;
 		head.m_cb = 0;
 		head.m_have_to_return_data = true;
-		head.m_command = SWAP32LE(command_id);
-		head.m_return_code = SWAP32LE(1);
+		head.m_command = command_id;
+		head.m_return_code = 1;
 		head.m_reservedA = rand(); //probably some flags in future
 		head.m_reservedB = rand(); //probably some check summ in future
 
-		head.m_cb = SWAP64LE(data.size());
+		head.m_cb = data.size();
 		buff.append(data);
 		return true;
 	}
@@ -87,17 +86,7 @@ namespace levin
 			return false;
 		}
 
-#if BYTE_ORDER == LITTLE_ENDIAN
-		levin::bucket_head &head = *(levin::bucket_head*)(&buff[0]);
-#else
-		levin::bucket_head head = *(levin::bucket_head*)(&buff[0]);
-		head.m_signature = SWAP64LE(head.m_signature);
-		head.m_cb = SWAP64LE(head.m_cb);
-		head.m_command = SWAP32LE(head.m_command);
-		head.m_return_code = SWAP32LE(head.m_return_code);
-		head.m_reservedA = SWAP32LE(head.m_reservedA);
-		head.m_reservedB = SWAP32LE(head.m_reservedB);
-#endif
+		levin::bucket_head& head = *(levin::bucket_head*)(&buff[0]);
 		if(head.m_signature != LEVIN_SIGNATURE)
 		{
 			LOG_PRINT_L3("Failed to read signature in levin message, at load_struct_from_levin_message");
@@ -124,17 +113,7 @@ namespace levin
 			return false;
 		}
 		
-#if BYTE_ORDER == LITTLE_ENDIAN
-		levin::bucket_head &head = *(levin::bucket_head*)(&buff[0]);
-#else
-		levin::bucket_head head = *(levin::bucket_head*)(&buff[0]);
-		head.m_signature = SWAP64LE(head.m_signature);
-		head.m_cb = SWAP64LE(head.m_cb);
-		head.m_command = SWAP32LE(head.m_command);
-		head.m_return_code = SWAP32LE(head.m_return_code);
-		head.m_reservedA = SWAP32LE(head.m_reservedA);
-		head.m_reservedB = SWAP32LE(head.m_reservedB);
-#endif
+		levin::bucket_head& head = *(levin::bucket_head*)(&buff[0]);
 		if(head.m_signature != LEVIN_SIGNATURE)
 		{
 			LOG_ERROR("Failed to read signature in levin message, at load_struct_from_levin_message");

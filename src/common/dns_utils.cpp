@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 //
 // All rights reserved.
 //
@@ -34,14 +34,15 @@
 #include <stdlib.h>
 #include "include_base_utils.h"
 #include <random>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/optional.hpp>
 using namespace epee;
+namespace bf = boost::filesystem;
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "net.dns"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net.dns"
 
 static const char *DEFAULT_DNS_PUBLIC_ADDR[] =
 {
@@ -119,25 +120,10 @@ get_builtin_ds(void)
 namespace tools
 {
 
-static const char *get_record_name(int record_type)
-{
-  switch (record_type)
-  {
-    case DNS_TYPE_A: return "A";
-    case DNS_TYPE_TXT: return "TXT";
-    case DNS_TYPE_AAAA: return "AAAA";
-    default: return "unknown";
-  }
-}
-
 // fuck it, I'm tired of dealing with getnameinfo()/inet_ntop/etc
-boost::optional<std::string> ipv4_to_string(const char* src, size_t len)
+std::string ipv4_to_string(const char* src, size_t len)
 {
-  if (len < 4)
-  {
-    MERROR("Invalid IPv4 address: " << std::string(src, len));
-    return boost::none;
-  }
+  assert(len >= 4);
 
   std::stringstream ss;
   unsigned int bytes[4];
@@ -155,13 +141,9 @@ boost::optional<std::string> ipv4_to_string(const char* src, size_t len)
 
 // this obviously will need to change, but is here to reflect the above
 // stop-gap measure and to make the tests pass at least...
-boost::optional<std::string> ipv6_to_string(const char* src, size_t len)
+std::string ipv6_to_string(const char* src, size_t len)
 {
-  if (len < 8)
-  {
-    MERROR("Invalid IPv4 address: " << std::string(src, len));
-    return boost::none;
-  }
+  assert(len >= 8);
 
   std::stringstream ss;
   unsigned int bytes[8];
@@ -181,10 +163,8 @@ boost::optional<std::string> ipv6_to_string(const char* src, size_t len)
   return ss.str();
 }
 
-boost::optional<std::string> txt_to_string(const char* src, size_t len)
+std::string txt_to_string(const char* src, size_t len)
 {
-  if (len == 0)
-    return boost::none;
   return std::string(src+1, len-1);
 }
 
@@ -287,7 +267,7 @@ DNSResolver::~DNSResolver()
   }
 }
 
-std::vector<std::string> DNSResolver::get_record(const std::string& url, int record_type, boost::optional<std::string> (*reader)(const char *,size_t), bool& dnssec_available, bool& dnssec_valid)
+std::vector<std::string> DNSResolver::get_record(const std::string& url, int record_type, std::string (*reader)(const char *,size_t), bool& dnssec_available, bool& dnssec_valid)
 {
   std::vector<std::string> addresses;
   dnssec_available = false;
@@ -304,18 +284,13 @@ std::vector<std::string> DNSResolver::get_record(const std::string& url, int rec
   // call DNS resolver, blocking.  if return value not zero, something went wrong
   if (!ub_resolve(m_data->m_ub_context, string_copy(url.c_str()), record_type, DNS_CLASS_IN, &result))
   {
-    dnssec_available = (result->secure || result->bogus);
+    dnssec_available = (result->secure || (!result->secure && result->bogus));
     dnssec_valid = result->secure && !result->bogus;
     if (result->havedata)
     {
       for (size_t i=0; result->data[i] != NULL; i++)
       {
-        boost::optional<std::string> res = (*reader)(result->data[i], result->len[i]);
-        if (res)
-        {
-          MINFO("Found \"" << *res << "\" in " << get_record_name(record_type) << " record for " << url);
-          addresses.push_back(*res);
-        }
+        addresses.push_back((*reader)(result->data[i], result->len[i]));
       }
     }
   }
@@ -407,9 +382,9 @@ std::string address_from_txt_record(const std::string& s)
   return {};
 }
 /**
- * @brief gets a initi address from the TXT record of a DNS entry
+ * @brief gets a CUT Coin address from the TXT record of a DNS entry
  *
- * gets the initi address from the TXT record of the DNS entry associated
+ * gets the CUT Coin address from the TXT record of the DNS entry associated
  * with <url>.  If this lookup fails, or the TXT record does not contain an
  * XMR address in the correct format, returns an empty string.  <dnssec_valid>
  * will be set true or false according to whether or not the DNS query passes
@@ -418,7 +393,7 @@ std::string address_from_txt_record(const std::string& s)
  * @param url the url to look up
  * @param dnssec_valid return-by-reference for DNSSEC status of query
  *
- * @return a initi address (as a string) or an empty string
+ * @return a CUT Coin address (as a string) or an empty string
  */
 std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec_valid)
 {
@@ -435,7 +410,7 @@ std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec
   }
   else dnssec_valid = false;
 
-  // for each txt record, try to find a initi address in it.
+  // for each txt record, try to find a CUT Coin address in it.
   for (auto& rec : records)
   {
     std::string addr = address_from_txt_record(rec);
@@ -542,7 +517,7 @@ bool load_txt_records_from_dns(std::vector<std::string> &good_records, const std
 
   if (num_valid_records < 2)
   {
-    LOG_PRINT_L0("WARNING: no two valid MoneroPulse DNS checkpoint records were received");
+    LOG_PRINT_L0("WARNING: no two valid InitiSPulse DNS checkpoint records were received");
     return false;
   }
 
@@ -564,7 +539,7 @@ bool load_txt_records_from_dns(std::vector<std::string> &good_records, const std
 
   if (good_records_index < 0)
   {
-    LOG_PRINT_L0("WARNING: no two MoneroPulse DNS checkpoint records matched");
+    LOG_PRINT_L0("WARNING: no two InitiSPulse DNS checkpoint records matched");
     return false;
   }
 

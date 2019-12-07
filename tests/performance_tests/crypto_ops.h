@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2017, The Monero Project
 // 
 // All rights reserved.
@@ -40,7 +41,6 @@ enum test_op
   op_sc_mul,
   op_ge_add_raw,
   op_ge_add_p3_p3,
-  op_zeroCommitCached,
   ops_fast,
 
   op_addKeys,
@@ -48,7 +48,6 @@ enum test_op
   op_scalarmultKey,
   op_scalarmultH,
   op_scalarmult8,
-  op_ge_dsm_precomp,
   op_ge_double_scalarmult_base_vartime,
   op_ge_double_scalarmult_precomp_vartime,
   op_ge_double_scalarmult_precomp_vartime2,
@@ -56,7 +55,6 @@ enum test_op
   op_addKeys3,
   op_addKeys3_2,
   op_isInMainSubgroup,
-  op_zeroCommitUncached,
 };
 
 template<test_op op>
@@ -87,7 +85,6 @@ public:
     ge_cached tmp_cached;
     ge_p1p1 tmp_p1p1;
     ge_p2 tmp_p2;
-    ge_dsmp dsmp;
     switch (op)
     {
       case op_sc_add: sc_add(key.bytes, scalar0.bytes, scalar1.bytes); break;
@@ -105,7 +102,6 @@ public:
       case op_scalarmultKey: rct::scalarmultKey(point0, scalar0); break;
       case op_scalarmultH: rct::scalarmultH(scalar0); break;
       case op_scalarmult8: rct::scalarmult8(point0); break;
-      case op_ge_dsm_precomp: ge_dsm_precomp(dsmp, &p3_0); break;
       case op_ge_double_scalarmult_base_vartime: ge_double_scalarmult_base_vartime(&tmp_p2, scalar0.bytes, &p3_0, scalar1.bytes); break;
       case op_ge_double_scalarmult_precomp_vartime: ge_double_scalarmult_precomp_vartime(&tmp_p2, scalar0.bytes, &p3_0, scalar1.bytes, precomp0); break;
       case op_ge_double_scalarmult_precomp_vartime2: ge_double_scalarmult_precomp_vartime2(&tmp_p2, scalar0.bytes, precomp0, scalar1.bytes, precomp1); break;
@@ -113,8 +109,6 @@ public:
       case op_addKeys3: rct::addKeys3(key, scalar0, point0, scalar1, precomp1); break;
       case op_addKeys3_2: rct::addKeys3(key, scalar0, precomp0, scalar1, precomp1); break;
       case op_isInMainSubgroup: rct::isInMainSubgroup(point0); break;
-      case op_zeroCommitUncached: rct::zeroCommit(9001); break;
-      case op_zeroCommitCached: rct::zeroCommit(9000); break;
       default: return false;
     }
     return true;

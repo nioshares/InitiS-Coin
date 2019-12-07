@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2018, The Monero Project
 // 
 // All rights reserved.
@@ -114,17 +115,18 @@ TEST(device, ops)
   ASSERT_EQ(ki0, ki1);
 }
 
-TEST(device, ecdh32)
+TEST(device, ecdh)
 {
   hw::core::device_default dev;
   rct::ecdhTuple tuple, tuple2;
   rct::key key = rct::skGen();
   tuple.mask = rct::skGen();
   tuple.amount = rct::skGen();
+  tuple.senderPk = rct::pkGen();
   tuple2 = tuple;
-  dev.ecdhEncode(tuple, key, false);
-  dev.ecdhDecode(tuple, key, false);
+  dev.ecdhEncode(tuple, key);
+  dev.ecdhDecode(tuple, key);
   ASSERT_EQ(tuple2.mask, tuple.mask);
   ASSERT_EQ(tuple2.amount, tuple.amount);
+  ASSERT_EQ(tuple2.senderPk, tuple.senderPk);
 }
-

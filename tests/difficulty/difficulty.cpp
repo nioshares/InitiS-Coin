@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -56,16 +57,16 @@ int main(int argc, char *argv[]) {
     size_t n = 0;
     while (data >> timestamp >> difficulty) {
         size_t begin, end;
-        if (n < DIFFICULTY_WINDOW_V2 + DIFFICULTY_LAG) {
+        if (n < DIFFICULTY_WINDOW + DIFFICULTY_LAG) {
             begin = 0;
-            end = min(n, (size_t) DIFFICULTY_WINDOW_V2);
+            end = min(n, (size_t) DIFFICULTY_WINDOW);
         } else {
             end = n - DIFFICULTY_LAG;
-            begin = end - DIFFICULTY_WINDOW_V2;
+            begin = end - DIFFICULTY_WINDOW;
         }
-        uint64_t res = cryptonote::next_difficulty_v2(
+        uint64_t res = cryptonote::next_difficulty(
             vector<uint64_t>(timestamps.begin() + begin, timestamps.begin() + end),
-            vector<uint64_t>(cumulative_difficulties.begin() + begin, cumulative_difficulties.begin() + end), DEFAULT_TEST_DIFFICULTY_TARGET, false/*use_old_lwma2*/);
+            vector<uint64_t>(cumulative_difficulties.begin() + begin, cumulative_difficulties.begin() + end), DEFAULT_TEST_DIFFICULTY_TARGET);
         if (res != difficulty) {
             cerr << "Wrong difficulty for block " << n << endl
                 << "Expected: " << difficulty << endl

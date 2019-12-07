@@ -6,8 +6,8 @@
 
 */
 
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 // 
 // All rights reserved.
 // 
@@ -46,8 +46,8 @@
 #include "cryptonote_basic/cryptonote_basic.h"
 #include "rpc/core_rpc_server.h"
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "daemon"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace daemonize {
 
@@ -68,7 +68,7 @@ public:
 
   ~t_rpc_command_executor();
 
-  bool print_peer_list(bool white = true, bool gray = true, size_t limit = 0);
+  bool print_peer_list();
 
   bool print_peer_list_stats();
 
@@ -86,17 +86,15 @@ public:
 
   bool print_blockchain_info(uint64_t start_block_index, uint64_t end_block_index);
 
-  bool print_quorum_state(uint64_t height);
-
   bool set_log_level(int8_t level);
 
   bool set_log_categories(const std::string &categories);
 
   bool print_height();
 
-  bool print_block_by_hash(crypto::hash block_hash, bool include_hex);
+  bool print_block_by_hash(crypto::hash block_hash);
 
-  bool print_block_by_height(uint64_t height, bool include_hex);
+  bool print_block_by_height(uint64_t height);
 
   bool print_transaction(crypto::hash transaction_hash, bool include_hex, bool include_json);
 
@@ -108,9 +106,7 @@ public:
 
   bool print_transaction_pool_stats();
 
-  bool start_mining(cryptonote::account_public_address address, uint64_t num_threads, cryptonote::network_type nettype, bool do_background_mining = false, bool ignore_battery = false);
-
-  bool stop_mining();
+  bool staking_status();
 
   bool stop_daemon();
 
@@ -155,22 +151,6 @@ public:
   bool relay_tx(const std::string &txid);
 
   bool sync_info();
-
-  bool pop_blocks(uint64_t num_blocks);
-
-  bool print_mn_key();
-
-  bool print_mn_status(const std::vector<std::string>& args);
-
-  bool print_sr(uint64_t height);
-
-  bool prepare_registration();
-
-  bool print_mn(const std::vector<std::string> &args);
-
-  bool prune_blockchain();
-
-  bool check_blockchain_pruning();
 };
 
 } // namespace daemonize

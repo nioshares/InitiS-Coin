@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2017-2018, The Monero Project
 // 
 // All rights reserved.
@@ -61,8 +62,6 @@ int TransactionFuzzer::run(const std::string &filename)
 
 int main(int argc, const char **argv)
 {
-  TRY_ENTRY();
   TransactionFuzzer fuzzer;
   return run_fuzzer(argc, argv, fuzzer);
-  CATCH_ENTRY_L0("main", 1);
 }

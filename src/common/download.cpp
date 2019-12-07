@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2017-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 // 
 // All rights reserved.
 // 
@@ -30,13 +30,16 @@
 #include <string>
 #include <atomic>
 #include <boost/filesystem.hpp>
+#include <boost/asio.hpp>
 #include <boost/thread/thread.hpp>
+#include "cryptonote_config.h"
+#include "include_base_utils.h"
 #include "file_io_utils.h"
 #include "net/http_client.h"
 #include "download.h"
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "net.dl"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net.dl"
 
 namespace tools
 {

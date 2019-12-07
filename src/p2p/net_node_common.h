@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -43,10 +44,10 @@ namespace nodetool
   template<class t_connection_context>
   struct i_p2p_endpoint
   {
-    virtual bool relay_notify_to_list(int command, const epee::span<const uint8_t> data_buff, const std::list<boost::uuids::uuid>& connections)=0;
-    virtual bool relay_notify_to_all(int command, const epee::span<const uint8_t> data_buff, const epee::net_utils::connection_context_base& context)=0;
-    virtual bool invoke_command_to_peer(int command, const epee::span<const uint8_t> req_buff, std::string& resp_buff, const epee::net_utils::connection_context_base& context)=0;
-    virtual bool invoke_notify_to_peer(int command, const epee::span<const uint8_t> req_buff, const epee::net_utils::connection_context_base& context)=0;
+    virtual bool relay_notify_to_list(int command, const std::string& data_buff, const std::list<boost::uuids::uuid>& connections)=0;
+    virtual bool relay_notify_to_all(int command, const std::string& data_buff, const epee::net_utils::connection_context_base& context)=0;
+    virtual bool invoke_command_to_peer(int command, const std::string& req_buff, std::string& resp_buff, const epee::net_utils::connection_context_base& context)=0;
+    virtual bool invoke_notify_to_peer(int command, const std::string& req_buff, const epee::net_utils::connection_context_base& context)=0;
     virtual bool drop_connection(const epee::net_utils::connection_context_base& context)=0;
     virtual void request_callback(const epee::net_utils::connection_context_base& context)=0;
     virtual uint64_t get_connections_count()=0;
@@ -56,27 +57,24 @@ namespace nodetool
     virtual bool unblock_host(const epee::net_utils::network_address &address)=0;
     virtual std::map<std::string, time_t> get_blocked_hosts()=0;
     virtual bool add_host_fail(const epee::net_utils::network_address &address)=0;
-    virtual void add_used_stripe_peer(const t_connection_context &context)=0;
-    virtual void remove_used_stripe_peer(const t_connection_context &context)=0;
-    virtual void clear_used_stripe_peers()=0;
   };
 
   template<class t_connection_context>
   struct p2p_endpoint_stub: public i_p2p_endpoint<t_connection_context>
   {
-    virtual bool relay_notify_to_list(int command, const epee::span<const uint8_t> data_buff, const std::list<boost::uuids::uuid>& connections)
+    virtual bool relay_notify_to_list(int command, const std::string& data_buff, const std::list<boost::uuids::uuid>& connections)
     {
       return false;
     }
-    virtual bool relay_notify_to_all(int command, const epee::span<const uint8_t> data_buff, const epee::net_utils::connection_context_base& context)
+    virtual bool relay_notify_to_all(int command, const std::string& data_buff, const epee::net_utils::connection_context_base& context)
     {
       return false;
     }
-    virtual bool invoke_command_to_peer(int command, const epee::span<const uint8_t> req_buff, std::string& resp_buff, const epee::net_utils::connection_context_base& context)
+    virtual bool invoke_command_to_peer(int command, const std::string& req_buff, std::string& resp_buff, const epee::net_utils::connection_context_base& context)
     {
       return false;
     }
-    virtual bool invoke_notify_to_peer(int command, const epee::span<const uint8_t> req_buff, const epee::net_utils::connection_context_base& context)
+    virtual bool invoke_notify_to_peer(int command, const std::string& req_buff, const epee::net_utils::connection_context_base& context)
     {
       return true;
     }
@@ -116,15 +114,6 @@ namespace nodetool
     virtual bool add_host_fail(const epee::net_utils::network_address &address)
     {
       return true;
-    }
-    virtual void add_used_stripe_peer(const t_connection_context &context)
-    {
-    }
-    virtual void remove_used_stripe_peer(const t_connection_context &context)
-    {
-    }
-    virtual void clear_used_stripe_peers()
-    {
     }
   };
 }

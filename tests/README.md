@@ -27,7 +27,7 @@ To run the same tests on a release build, replace `debug` with `release`.
 
 # Crypto Tests
 
-Crypto tests are located under the `tests/crypto` directory.
+Crypto tests are located under the `tests/crypto` directory. 
 
 - `crypto-tests.h` contains test harness headers
 - `main.cpp` implements the driver for the crypto tests
@@ -50,11 +50,11 @@ To run the same tests on a release build, replace `debug` with `release`.
 # Functional tests
 
 [TODO]
-Functional tests are located under the `tests/functional` directory.
+Functional tests are located under the `tests/functional` directory. 
 
 First, run a regtest daemon in the offline mode and with a fixed difficulty:
 ```
-monerod --regtest --offline --fixed-difficulty 1
+initisd --regtest --offline --fixed-difficulty 1
 ```
 Alternatively, you can run multiple daemons and let them connect with each other by using `--add-exclusive-node`. In this case, make sure that the same fixed difficulty is given to all the daemons.
 

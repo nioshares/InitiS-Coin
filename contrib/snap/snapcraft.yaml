@@ -9,10 +9,10 @@ grade: devel
 confinement: strict
 
 apps:
-    monerod:
+    initisd:
         daemon: forking
         command: |
-          monerod-wrapper --detach --data-dir ${SNAP_COMMON} --config-file ${SNAP_USER_DATA}/etc/monerod.conf
+          initisd-wrapper --detach --data-dir ${SNAP_COMMON} --config-file ${SNAP_USER_DATA}/etc/initisd.conf
         plugs:
             - network
             - network-bind
@@ -71,8 +71,8 @@ parts:
         plugin: dump
         source: .
         organize:
-            contrib/snap/monerod.conf: etc/monerod.conf
-            contrib/snap/monerod-wrapper: bin/monerod-wrapper
+            contrib/snap/initisd.conf: etc/initisd.conf
+            contrib/snap/initisd-wrapper: bin/initisd-wrapper
         prime:
             - etc
             - bin

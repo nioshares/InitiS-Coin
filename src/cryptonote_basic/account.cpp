@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 // 
 // All rights reserved.
 // 
@@ -42,8 +42,8 @@ extern "C"
 #include "cryptonote_basic_impl.h"
 #include "cryptonote_format_utils.h"
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "account"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "account"
 
 #define KEYS_ENCRYPTION_SALT 'k'
 
@@ -137,16 +137,6 @@ DISABLE_VS_WARNINGS(4244 4345)
   void account_base::set_null()
   {
     m_keys = account_keys();
-    m_creation_timestamp = 0;
-  }
-  //-----------------------------------------------------------------
-  void account_base::deinit()
-  {
-    try{
-      m_keys.get_device().disconnect();
-    } catch (const std::exception &e){
-      MERROR("Device disconnect exception: " << e.what());
-    }
   }
   //-----------------------------------------------------------------
   void account_base::forget_spend_key()
@@ -216,16 +206,11 @@ DISABLE_VS_WARNINGS(4244 4345)
   void account_base::create_from_device(hw::device &hwdev)
   {
     m_keys.set_device(hwdev);
-    MCDEBUG("device", "device type: "<<typeid(hwdev).name());
-    CHECK_AND_ASSERT_THROW_MES(hwdev.init(), "Device init failed");
-    CHECK_AND_ASSERT_THROW_MES(hwdev.connect(), "Device connect failed");
-    try {
-      CHECK_AND_ASSERT_THROW_MES(hwdev.get_public_address(m_keys.m_account_address), "Cannot get a device address");
-      CHECK_AND_ASSERT_THROW_MES(hwdev.get_secret_keys(m_keys.m_view_secret_key, m_keys.m_spend_secret_key), "Cannot get device secret");
-    } catch (const std::exception &e){
-      hwdev.disconnect();
-      throw;
-    }
+    MCDEBUG("ledger", "device type: "<<typeid(hwdev).name());
+    hwdev.init();
+    hwdev.connect();
+    hwdev.get_public_address(m_keys.m_account_address);
+    hwdev.get_secret_keys(m_keys.m_view_secret_key, m_keys.m_spend_secret_key);
     struct tm timestamp = {0};
     timestamp.tm_year = 2014 - 1900;  // year 2014
     timestamp.tm_mon = 4 - 1;  // month april

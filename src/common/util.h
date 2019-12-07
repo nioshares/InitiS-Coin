@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -39,7 +40,6 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <chrono>
 
 #ifdef _WIN32
 #include "windows.h"
@@ -222,8 +222,6 @@ namespace tools
 
   void set_strict_default_file_permissions(bool strict);
 
-  ssize_t get_lockable_memory();
-
   void set_max_concurrency(unsigned n);
   unsigned get_max_concurrency();
 
@@ -243,7 +241,4 @@ namespace tools
 #endif
 
   void closefrom(int fd);
-
-  std::string get_human_readable_timestamp(uint64_t ts);
-  std::string get_human_readable_timespan(std::chrono::seconds seconds);
 }

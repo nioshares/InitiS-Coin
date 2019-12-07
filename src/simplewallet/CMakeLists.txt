@@ -1,4 +1,4 @@
-# Copyright (c) 2018, The InitiS Project
+# Copyright (c) 2018-2019, CUT coin
 # Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
@@ -44,18 +44,17 @@ initis_add_executable(simplewallet
 target_link_libraries(simplewallet
   PRIVATE
     wallet
-    daemonizer
     rpc_base
     cryptonote_core
     cncrypto
     common
     mnemonics
+    plant
     ${EPEE_READLINE}
     version
     ${Boost_CHRONO_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_LOCALE_LIBRARY}
     ${ICU_LIBRARIES}
     ${Boost_THREAD_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
@@ -63,5 +62,5 @@ target_link_libraries(simplewallet
     ${EXTRA_LIBRARIES})
 set_property(TARGET simplewallet
   PROPERTY
-    OUTPUT_NAME "initi-wallet-cli")
+    OUTPUT_NAME "initis-wallet-cli")
 install(TARGETS simplewallet DESTINATION bin)

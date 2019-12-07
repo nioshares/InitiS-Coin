@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/quinton/Desktop/cutcoin/version.cpp
+version.h
+/Users/quinton/Desktop/cutcoin/version.h
+
+src/version.h
+

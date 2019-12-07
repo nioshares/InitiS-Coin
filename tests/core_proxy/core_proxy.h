@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -34,7 +35,6 @@
 
 #include "cryptonote_basic/cryptonote_basic_impl.h"
 #include "cryptonote_basic/verification_context.h"
-#include "cryptonote_core/master_node_deregister.h"
 #include <unordered_map>
 
 namespace tests
@@ -79,7 +79,6 @@ namespace tests
     bool handle_incoming_tx(const cryptonote::blobdata& tx_blob, cryptonote::tx_verification_context& tvc, bool keeped_by_block, bool relayed, bool do_not_relay);
     bool handle_incoming_txs(const std::vector<cryptonote::blobdata>& tx_blobs, std::vector<cryptonote::tx_verification_context>& tvc, bool keeped_by_block, bool relayed, bool do_not_relay);
     bool handle_incoming_block(const cryptonote::blobdata& block_blob, cryptonote::block_verification_context& bvc, bool update_miner_blocktemplate = true);
-    bool handle_uptime_proof(const cryptonote::NOTIFY_UPTIME_PROOF::request &proof);
     void pause_mine(){}
     void resume_mine(){}
     bool on_idle(){return true;}
@@ -105,12 +104,6 @@ namespace tests
     uint64_t get_earliest_ideal_height_for_version(uint8_t version) const { return 0; }
     cryptonote::difficulty_type get_block_cumulative_difficulty(uint64_t height) const { return 0; }
     bool fluffy_blocks_enabled() const { return false; }
-    uint64_t prevalidate_block_hashes(uint64_t height, const std::list<crypto::hash> &hashes) { return 0; }
     uint64_t prevalidate_block_hashes(uint64_t height, const std::vector<crypto::hash> &hashes) { return 0; }
-    // TODO(initi): Write tests
-    bool add_deregister_vote(const master_nodes::deregister_vote& vote, cryptonote::vote_verification_context &vvc) { return false; }
-    bool pad_transactions() const { return false; }
-    uint32_t get_blockchain_pruning_seed() const { return 0; }
-    bool prune_blockchain(uint32_t pruning_seed) const { return true; }
   };
 }

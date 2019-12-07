@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 // 
 // All rights reserved.
 // 
@@ -33,8 +33,8 @@
 
 #include "rpc/core_rpc_server.h"
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "daemon"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace daemonize
 {
@@ -55,6 +55,7 @@ public:
     , t_core & core
     , t_p2p & p2p
     , const bool restricted
+    , const cryptonote::network_type nettype
     , const std::string & port
     , const std::string & description
     )
@@ -62,7 +63,7 @@ public:
   {
     MGINFO("Initializing " << m_description << " RPC server...");
 
-    if (!m_server.init(vm, restricted, port))
+    if (!m_server.init(vm, restricted, nettype, port))
     {
       throw std::runtime_error("Failed to initialize " + m_description + " RPC server.");
     }

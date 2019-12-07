@@ -1,4 +1,4 @@
-# Copyright (c) 2018, The InitiS Project
+# Copyright (c) 2018-2019, CUT coin
 # Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
@@ -59,7 +59,7 @@ set(cryptonote_basic_private_headers
   difficulty.h
   hardfork.h
   miner.h
-  tx_extra.h
+        tx_extra.h
   verification_context.h)
 
 initis_private_headers(cryptonote_basic

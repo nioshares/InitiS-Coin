@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -50,8 +51,8 @@ namespace Language
   class Singleton
   {
     Singleton() {}
-    Singleton(Singleton &s) = delete;
-    Singleton& operator=(const Singleton&) = delete;
+    Singleton(Singleton &s) {}
+    Singleton& operator=(const Singleton&) {}
   public:
     static T* instance()
     {

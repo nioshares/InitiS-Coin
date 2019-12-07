@@ -1,11 +1,12 @@
-packages:=boost openssl zeromq cppzmq expat ldns cppzmq readline libiconv hidapi protobuf libusb
-native_packages := native_ccache native_protobuf
+packages:=boost openssl libevent zeromq cppzmq zlib expat ldns cppzmq readline libiconv qt hidapi
+native_packages := native_ccache
+
+wallet_packages=bdb
 
 darwin_native_packages = native_biplist native_ds_store native_mac_alias
 darwin_packages = sodium-darwin
 
-linux_packages = eudev
-qt_packages = qt
+linux_packages = eudev libusb
 
 ifeq ($(host_os),linux)
 packages += unwind
@@ -18,5 +19,6 @@ endif
 
 ifneq ($(build_os),darwin)
 darwin_native_packages += native_cctools native_cdrkit native_libdmg-hfsplus
+packages += readline
 endif
 

@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -46,20 +47,4 @@ struct gen_block_reward : public test_chain_unit_base
 private:
   size_t m_invalid_block_index;
   std::vector<size_t> m_checked_blocks_indices;
-};
-
-struct gen_batched_governance_reward : public test_chain_unit_base
-{
-  gen_batched_governance_reward();
-  bool generate(std::vector<test_event_entry>& events) const;
-  bool check_batched_governance_amount_matches(cryptonote::core& c, size_t ev_index, const std::vector<test_event_entry>& events);
-};
-
-template<> struct get_test_options<gen_batched_governance_reward>
-{
-  const std::vector<std::pair<uint8_t, uint64_t>> hard_forks = { std::make_pair(cryptonote::network_version_7,               0),
-                                                                 std::make_pair(cryptonote::network_version_8,               1),
-                                                                 std::make_pair(cryptonote::network_version_9_master_nodes, 2),
-                                                                 std::make_pair(cryptonote::network_version_10_bulletproofs, 3) };
-  const cryptonote::test_options test_options = { hard_forks };
 };

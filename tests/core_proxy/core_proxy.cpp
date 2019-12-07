@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -221,12 +222,6 @@ bool tests::proxy_core::handle_incoming_block(const cryptonote::blobdata& block_
         return false;
 
     return true;
-}
-
-bool tests::proxy_core::handle_uptime_proof(const cryptonote::NOTIFY_UPTIME_PROOF::request &proof)
-{
-  // TODO: add tests for core uptime proof checking.
-  return false; // never relay these for tests.
 }
 
 bool tests::proxy_core::get_short_chain_history(std::list<crypto::hash>& ids) {

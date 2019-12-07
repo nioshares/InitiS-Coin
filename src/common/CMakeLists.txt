@@ -1,4 +1,4 @@
-# Copyright (c) 2018, The InitiS Project
+# Copyright (c) 2018-2019, CUT coin
 # Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
@@ -36,30 +36,28 @@ set(common_sources
   download.cpp
   error.cpp
   expect.cpp
-  initi.cpp
   util.cpp
   i18n.cpp
-  rules.cpp
   notify.cpp
   password.cpp
   perf_timer.cpp
-  pruning.cpp
-  scoped_message_writer.cpp
+  scheduler.cpp
+  sharedlock.cpp
   spawn.cpp
   threadpool.cpp
   updates.cpp
   aligned.c
-  combinator.cpp)
+  uint128.cpp)
 
 if (STACK_TRACE)
   list(APPEND common_sources stack_trace.cpp)
 endif()
 
-if (BACKCOMPAT)
-  list(APPEND common_sources compat/glibc_compat.cpp)
-endif()
-
-set(common_headers)
+set(common_headers
+  scheduler.h
+  sharedlock.h
+  threadpool.h
+  uint128.hpp)
 
 set(common_private_headers
   apply_permutation.h
@@ -71,12 +69,10 @@ set(common_private_headers
   download.h
   error.h
   expect.h
-  initi.h
   http_connection.h
-  initis_integration_test_hooks.h
+  int-util.h
   notify.h
   pod-class.h
-  pruning.h
   rpc_client.h
   scoped_message_writer.h
   unordered_containers_boost_serialization.h
@@ -85,13 +81,10 @@ set(common_private_headers
   i18n.h
   password.h
   perf_timer.h
-  rules.h
   spawn.h
   stack_trace.h
-  threadpool.h
   updates.h
-  aligned.h
-  combinator.h)
+  aligned.h)
 
 initis_private_headers(common
   ${common_private_headers})
@@ -113,8 +106,7 @@ target_link_libraries(common
     ${Boost_CHRONO_LIBRARY}
   PRIVATE
     ${OPENSSL_LIBRARIES}
-    ${EPEE_READLINE}
     ${EXTRA_LIBRARIES})
 
-#monero_install_headers(common
+#initis_install_headers(common
 #  ${common_headers})

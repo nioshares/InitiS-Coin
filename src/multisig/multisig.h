@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2017-2018, The Monero Project
 // 
 // All rights reserved.
@@ -32,11 +33,7 @@
 #include <unordered_map>
 #include "crypto/crypto.h"
 #include "cryptonote_basic/cryptonote_format_utils.h"
-
-namespace rct
-{
-  struct key;
-};
+#include "ringct/rctTypes.h"
 
 namespace cryptonote
 {

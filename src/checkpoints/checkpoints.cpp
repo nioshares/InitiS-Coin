@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 //
 // All rights reserved.
 //
@@ -29,20 +29,20 @@
 //
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#include "checkpoints.h"
-
-#include "common/dns_utils.h"
-#include "string_tools.h"
-#include "storages/portable_storage_template_helper.h" // epee json include
-#include "serialization/keyvalue_serialization.h"
-#include <vector>
+#include "include_base_utils.h"
 
 using namespace epee;
 
-#include "common/initis_integration_test_hooks.h"
+#include "checkpoints.h"
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "checkpoints"
+#include "common/dns_utils.h"
+#include "include_base_utils.h"
+#include "string_tools.h"
+#include "storages/portable_storage_template_helper.h" // epee json include
+#include "serialization/keyvalue_serialization.h"
+
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "checkpoints"
 
 namespace cryptonote
 {
@@ -77,7 +77,7 @@ namespace cryptonote
   bool checkpoints::add_checkpoint(uint64_t height, const std::string& hash_str)
   {
     crypto::hash h = crypto::null_hash;
-    bool r = epee::string_tools::hex_to_pod(hash_str, h);
+    bool r = epee::string_tools::parse_tpod_from_hex_string(hash_str, h);
     CHECK_AND_ASSERT_MES(r, false, "Failed to parse checkpoint hash string into binary representation!");
 
     // return false if adding at a height we already have AND the hash is different
@@ -162,38 +162,16 @@ namespace cryptonote
 
   bool checkpoints::init_default_checkpoints(network_type nettype)
   {
-    switch (nettype) {
-      case STAGENET:
-        break;
-      case TESTNET:
-        break;
-      case FAKECHAIN:
-        break;
-      case UNDEFINED:
-        break;
-      case MAINNET:
-#if !defined(INITIS_ENABLE_INTEGRATION_TEST_HOOKS)
-/*
-        ADD_CHECKPOINT(1,     "a9eedcc8ad75c40acbed366a64029d0bf1c1b282ec0ca1d28213b9d386c2b81f");
-	    ADD_CHECKPOINT(10,    "a4014ffa8d32fe14bba3c6d8fc2bf8d3766615ee9ba779a075219a067257216c");
-        ADD_CHECKPOINT(100,   "450a6fdade242c8afa8db3414a45a94371bf320470f95408a12122a64b836ee1");
-        ADD_CHECKPOINT(1000,  "c023df332f7f6f7fcc8e2d1e5f57791a3a8e0b4c18eabb5b4362cdfea559c4a3");
-        ADD_CHECKPOINT(10000, "2ba23579a88eb51c3b6f942f7a9d4551949dc9c0f28bb9828a1b31b86be7530e");
-        ADD_CHECKPOINT(20000, "ce5ef2ec4df489ddc574007697bdf3c3b702d9ef5a6f60a4905dd167884e8db3");
-        ADD_CHECKPOINT(30000, "3564a8f37148b5e9639f6cf2bb8c67d0176a5464001449d5e8420fc0d67fa587");
-        ADD_CHECKPOINT(40000, "ac2ad416b209526eb1c6f8e17d678896284561e55422541c82605dcea023e73c");
-        ADD_CHECKPOINT(43108, "f54611306472cae55e4de18544f1c00bd83902a86d35310ac7e2cad846457a50");
-        ADD_CHECKPOINT(50000, "64f0bc96738d3d809baef37991d85c497ad4b52d224757fd71a42aab3ded49b6");
-        ADD_CHECKPOINT(55000, "f00d1ab250da7935ef74bf907d94d1ac1f91be93fd3f0506fc9cf150c75c32e9");
-		ADD_CHECKPOINT(85981, "7dcc50f8757e621f6c89efc32bd2f6459401d57c3439d710dfab02fe7627aea9");
-        ADD_CHECKPOINT(87350, "9613e5bcd6e29edea0e11b9795643568460860c9dd4d63613103a6a3e521a4e4");
-        ADD_CHECKPOINT(100000,"43c136ae12f0e504c103e476d4f817e82c5eaa6fd136d255e66668060579151b");
-        ADD_CHECKPOINT(110000,"f864c2ed9dd0abd17fb4e931c5067f3f6f90beee22d985bfc55de29d7e7df712");
-        ADD_CHECKPOINT(126042,"4133f8bce41a5907e4e869dd6cbf351429d34008ee0e572eb7d4b978fd0c49c9");
-*/
-#endif
-        break;
+    if (nettype == TESTNET)
+    {
+      ADD_CHECKPOINT(10000, "c2f81bb5cd3952d2196be787fff30ea82fdfbee4ac98f6d8de8f5a44c74bf965");
+      ADD_CHECKPOINT(12000, "707f60a2f3007f7249c3d092a5623b375fc5cd7a46616f00c59552a518d59638");
+      return true;
     }
+
+    ADD_CHECKPOINT(15000, "69f170dbe0ec2964fc1d40a771e757abd6e05e6f2087a6a418895b7e72df6e71");
+    ADD_CHECKPOINT(30000, "157d218a8ebed4bec78027d5e17b167a428b58cc0bd7dec8d4e3d22b2cbad028");
+    ADD_CHECKPOINT(45000, "4c63de6bdc431eb45137ff78de93ea5033f95473240868306cab02fdf68448f1");
     return true;
   }
 
@@ -235,6 +213,57 @@ namespace cryptonote
 
   bool checkpoints::load_checkpoints_from_dns(network_type nettype)
   {
+    std::vector<std::string> records;
+
+    // All four MoneroPulse domains have DNSSEC on and valid
+    static const std::vector<std::string> dns_urls = { "checkpoints.moneropulse.se"
+						     , "checkpoints.moneropulse.org"
+						     , "checkpoints.moneropulse.net"
+						     , "checkpoints.moneropulse.co"
+    };
+
+    static const std::vector<std::string> testnet_dns_urls = { "testpoints.moneropulse.se"
+							     , "testpoints.moneropulse.org"
+							     , "testpoints.moneropulse.net"
+							     , "testpoints.moneropulse.co"
+    };
+
+    static const std::vector<std::string> stagenet_dns_urls = { "stagenetpoints.moneropulse.se"
+                   , "stagenetpoints.moneropulse.org"
+                   , "stagenetpoints.moneropulse.net"
+                   , "stagenetpoints.moneropulse.co"
+    };
+
+    if (!tools::dns_utils::load_txt_records_from_dns(records, nettype == TESTNET ? testnet_dns_urls : nettype == STAGENET ? stagenet_dns_urls : dns_urls))
+      return true; // why true ?
+
+    for (const auto& record : records)
+    {
+      auto pos = record.find(":");
+      if (pos != std::string::npos)
+      {
+        uint64_t height;
+        crypto::hash hash;
+
+        // parse the first part as uint64_t,
+        // if this fails move on to the next record
+        std::stringstream ss(record.substr(0, pos));
+        if (!(ss >> height))
+        {
+    continue;
+        }
+
+        // parse the second part as crypto::hash,
+        // if this fails move on to the next record
+        std::string hashStr = record.substr(pos + 1);
+        if (!epee::string_tools::parse_tpod_from_hex_string(hashStr, hash))
+        {
+    continue;
+        }
+
+        ADD_CHECKPOINT(height, hashStr);
+      }
+    }
     return true;
   }
 

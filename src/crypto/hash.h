@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -38,7 +39,6 @@
 #include "generic-ops.h"
 #include "hex.h"
 #include "span.h"
-#include <boost/align/aligned_alloc.hpp>
 
 namespace crypto {
 
@@ -71,42 +71,14 @@ namespace crypto {
     cn_fast_hash(data, length, reinterpret_cast<char *>(&h));
     return h;
   }
-  
-  
-  enum struct cn_slow_hash_type
-  {
-      heavy_v0,
-	  heavy_v7,
-      heavy_v8,
-      cn_conceal_v0
-  };
-  
-  
-  inline void cn_slow_hash(const void *data, std::size_t length, hash &hash, cn_slow_hash_type type) {
-    
-	
-	switch(type)
-    {
-      case cn_slow_hash_type::heavy_v0:
-		cn_slow_hash(data, length, reinterpret_cast<char *>(&hash), 0, 0/*prehashed*/);
-	  break;
-      case cn_slow_hash_type::heavy_v7:
-		cn_slow_hash(data, length, reinterpret_cast<char *>(&hash), 1, 0/*prehashed*/);
-	  break;
-      case cn_slow_hash_type::heavy_v8:
-		cn_slow_hash(data, length, reinterpret_cast<char *>(&hash), 2, 0/*prehashed*/);
-      break;
-      case cn_slow_hash_type::cn_conceal_v0:
-      default:
-      {
-		  crypto::cn_conceal_slow_hash_v0(data, length, hash.data);
-      }
-      break;
-    }
-	
+
+  inline void cn_slow_hash(const void *data, std::size_t length, hash &hash, int variant = 0) {
+    cn_slow_hash(data, length, reinterpret_cast<char *>(&hash), variant, 0/*prehashed*/);
   }
 
-
+  inline void cn_slow_hash_prehashed(const void *data, std::size_t length, hash &hash, int variant = 0) {
+    cn_slow_hash(data, length, reinterpret_cast<char *>(&hash), variant, 1/*prehashed*/);
+  }
 
   inline void tree_hash(const hash *hashes, std::size_t count, hash &root_hash) {
     tree_hash(reinterpret_cast<const char (*)[HASH_SIZE]>(hashes), count, reinterpret_cast<char *>(&root_hash));

@@ -6,6 +6,7 @@
 
 */
 
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -75,18 +76,6 @@ public:
 
   bool print_blockchain_info(const std::vector<std::string>& args);
 
-  bool print_quorum_state(const std::vector<std::string>& args);
-
-  bool print_mn_key(const std::vector<std::string>& args);
-
-  bool print_sr(const std::vector<std::string>& args);
-
-  bool prepare_registration();
-
-  bool print_mn(const std::vector<std::string>& args);
-
-  bool print_mn_status(const std::vector<std::string>& args);
-
   bool set_log_level(const std::vector<std::string>& args);
 
   bool set_log_categories(const std::vector<std::string>& args);
@@ -104,10 +93,6 @@ public:
   bool print_transaction_pool_short(const std::vector<std::string>& args);
 
   bool print_transaction_pool_stats(const std::vector<std::string>& args);
-
-  bool start_mining(const std::vector<std::string>& args);
-
-  bool stop_mining(const std::vector<std::string>& args);
 
   bool stop_daemon(const std::vector<std::string>& args);
 
@@ -151,13 +136,7 @@ public:
 
   bool sync_info(const std::vector<std::string>& args);
 
-  bool pop_blocks(const std::vector<std::string>& args);
-
   bool version(const std::vector<std::string>& args);
-
-  bool prune_blockchain(const std::vector<std::string>& args);
-
-  bool check_blockchain_pruning(const std::vector<std::string>& args);
 };
 
 } // namespace daemonize

@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2017-2018, The Monero Project
 // 
 // All rights reserved.
@@ -29,7 +30,6 @@
 
 #if defined(HAVE_HIDAPI) 
 
-#include <boost/optional/optional.hpp>
 #include <hidapi/hidapi.h>
 #include "device_io.hpp"
 
@@ -55,6 +55,7 @@ namespace hw {
       unsigned int pid; 
       int interface_number;
       unsigned short usage_page;
+      bool interface_OR_page ;
     };
     
 
@@ -82,10 +83,12 @@ namespace hw {
       unsigned int wrapCommand(const unsigned char *command, size_t command_len, unsigned char *out, size_t out_len);
       unsigned int unwrapReponse(const unsigned char *data, size_t data_len, unsigned char *out, size_t out_len);
  
-      hid_device_info *find_device(hid_device_info *devices_list, boost::optional<int> interface_number, boost::optional<unsigned short> usage_page);
  
     public:
       bool hid_verbose = false;
+
+      static const unsigned int  OR_SELECT = 1;
+      static const unsigned int  AND_SELECT = 2;
 
       static const unsigned short DEFAULT_CHANNEL     = 0x0001;
       static const unsigned char  DEFAULT_TAG         = 0x01;
@@ -98,9 +101,9 @@ namespace hw {
 
       void init();  
       void connect(void *params);
-      void connect(unsigned int vid, unsigned  int pid, boost::optional<int> interface_number, boost::optional<unsigned short> usage_page);
+      void connect(unsigned int vid, unsigned  int pid, int interface_number, unsigned short usage_page, bool interface_OR_page );
       bool connected() const;
-      int  exchange(unsigned char *command, unsigned int cmd_len, unsigned char *response, unsigned int max_resp_len, bool user_input);
+      int  exchange(unsigned char *command, unsigned int cmd_len, unsigned char *response, unsigned int max_resp_len);
       void disconnect();
       void release();
     };

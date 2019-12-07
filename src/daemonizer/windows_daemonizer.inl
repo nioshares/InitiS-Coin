@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 // 
 // All rights reserved.
 // 
@@ -32,7 +32,6 @@
 #include "common/util.h"
 #include "daemonizer/windows_service.h"
 #include "daemonizer/windows_service_runner.h"
-#include "cryptonote_core/cryptonote_core.h"
 
 #include <shlobj.h>
 #include <boost/filesystem/operations.hpp>
@@ -177,7 +176,7 @@ namespace daemonizer
     }
     else // interactive
     {
-      //LOG_PRINT_L0("InitiS '" << INITIS_RELEASE_NAME << "' (v" << INITIS_VERSION_FULL);
+      //LOG_PRINT_L0("CUT Coin '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL);
       return executor.run_interactive(vm);
     }
 

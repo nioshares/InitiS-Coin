@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2016-2018, The Monero Project
 // 
 // All rights reserved.
@@ -65,7 +66,7 @@ namespace rpc
       static const char* STATUS_BAD_REQUEST;
       static const char* STATUS_BAD_JSON;
 
-      Message() : status(STATUS_OK), rpc_version(0) { }
+      Message() : status(STATUS_OK) { }
 
       virtual ~Message() { }
 

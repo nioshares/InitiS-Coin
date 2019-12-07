@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/quinton/Desktop/cutcoin/src/common/aligned.c
+stdio.h
+-
+stdlib.h
+-
+unistd.h
+-
+stdint.h
+-
+string.h
+-
+aligned.h
+/Users/quinton/Desktop/cutcoin/src/common/aligned.h
+
+/Users/quinton/Desktop/cutcoin/src/common/aligned.h
+

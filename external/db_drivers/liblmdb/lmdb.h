@@ -97,12 +97,11 @@
  *	  transactions.  Each transaction belongs to one thread.  See below.
  *	  The #MDB_NOTLS flag changes this for read-only transactions.
  *
- *	- Use an MDB_env* in the process which opened it, not after fork().
+ *	- Use an MDB_env* in the process which opened it, without fork()ing.
  *
  *	- Do not have open an LMDB database twice in the same process at
  *	  the same time.  Not even from a plain open() call - close()ing it
- *	  breaks fcntl() advisory locking.  (It is OK to reopen it after
- *	  fork() - exec*(), since the lockfile has FD_CLOEXEC set.)
+ *	  breaks flock() advisory locking.
  *
  *	- Avoid long-lived transactions.  Read transactions prevent
  *	  reuse of pages freed by newer write transactions, thus the
@@ -136,7 +135,7 @@
  *
  *	@author	Howard Chu, Symas Corporation.
  *
- *	@copyright Copyright 2011-2019 Howard Chu, Symas Corp. All rights reserved.
+ *	@copyright Copyright 2011-2016 Howard Chu, Symas Corp. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -168,7 +167,6 @@
 
 #include <sys/types.h>
 #include <inttypes.h>
-#include <limits.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -181,30 +179,11 @@ typedef	int	mdb_mode_t;
 typedef	mode_t	mdb_mode_t;
 #endif
 
-#ifdef _WIN32
-# define MDB_FMT_Z	"I"
-#else
-# define MDB_FMT_Z	"z"			/**< printf/scanf format modifier for size_t */
-#endif
-
-#ifndef MDB_VL32
-/** Unsigned type used for mapsize, entry counts and page/transaction IDs.
- *
- *	It is normally size_t, hence the name. Defining MDB_VL32 makes it
- *	uint64_t, but do not try this unless you know what you are doing.
- */
-typedef size_t	mdb_size_t;
-# define MDB_SIZE_MAX	SIZE_MAX	/**< max #mdb_size_t */
-/** #mdb_size_t printf formats, \b t = one of [diouxX] without quotes */
-# define MDB_PRIy(t)	MDB_FMT_Z #t
-/** #mdb_size_t scanf formats, \b t = one of [dioux] without quotes */
-# define MDB_SCNy(t)	MDB_FMT_Z #t
-#else
+#ifdef MDB_VL32
 typedef uint64_t	mdb_size_t;
-# define MDB_SIZE_MAX	UINT64_MAX
-# define MDB_PRIy(t)	PRI##t##64
-# define MDB_SCNy(t)	SCN##t##64
-# define mdb_env_create	mdb_env_create_vl32	/**< Prevent mixing with non-VL32 builds */
+#define mdb_env_create	mdb_env_create_vl32	/**< Prevent mixing with non-VL32 builds */
+#else
+typedef size_t	mdb_size_t;
 #endif
 
 /** An abstraction for a file handle.
@@ -343,8 +322,7 @@ typedef void (MDB_rel_func)(MDB_val *item, void *oldptr, void *newptr, void *rel
 #define MDB_REVERSEKEY	0x02
 	/** use sorted duplicates */
 #define MDB_DUPSORT		0x04
-	/** numeric keys in native byte order, either unsigned int or #mdb_size_t.
-	 *	(lmdb expects 32-bit int <= size_t <= 32/64-bit mdb_size_t.)
+	/** numeric keys in native byte order: either unsigned int or size_t.
 	 *  The keys must all be of the same size. */
 #define MDB_INTEGERKEY	0x08
 	/** with #MDB_DUPSORT, sorted dup items have fixed size */
@@ -402,7 +380,7 @@ typedef enum MDB_cursor_op {
 	MDB_GET_BOTH,			/**< Position at key/data pair. Only for #MDB_DUPSORT */
 	MDB_GET_BOTH_RANGE,		/**< position at key, nearest data. Only for #MDB_DUPSORT */
 	MDB_GET_CURRENT,		/**< Return key/data at current cursor position */
-	MDB_GET_MULTIPLE,		/**< Return up to a page of duplicate data items
+	MDB_GET_MULTIPLE,		/**< Return key and up to a page of duplicate data items
 								from current cursor position. Move cursor to prepare
 								for #MDB_NEXT_MULTIPLE. Only for #MDB_DUPFIXED */
 	MDB_LAST,				/**< Position at last key/data item */
@@ -411,7 +389,7 @@ typedef enum MDB_cursor_op {
 	MDB_NEXT,				/**< Position at next data item */
 	MDB_NEXT_DUP,			/**< Position at next data item of current key.
 								Only for #MDB_DUPSORT */
-	MDB_NEXT_MULTIPLE,		/**< Return up to a page of duplicate data items
+	MDB_NEXT_MULTIPLE,		/**< Return key and up to a page of duplicate data items
 								from next cursor position. Move cursor to prepare
 								for #MDB_NEXT_MULTIPLE. Only for #MDB_DUPFIXED */
 	MDB_NEXT_NODUP,			/**< Position at first data item of next key */
@@ -422,7 +400,7 @@ typedef enum MDB_cursor_op {
 	MDB_SET,				/**< Position at specified key */
 	MDB_SET_KEY,			/**< Position at specified key, return key + data */
 	MDB_SET_RANGE,			/**< Position at first key greater than or equal to specified key. */
-	MDB_PREV_MULTIPLE		/**< Position at previous page and return up to
+	MDB_PREV_MULTIPLE		/**< Position at previous page and return key and up to
 								a page of duplicate data items. Only for #MDB_DUPFIXED */
 } MDB_cursor_op;
 
@@ -480,10 +458,8 @@ typedef enum MDB_cursor_op {
 #define MDB_BAD_VALSIZE		(-30781)
 	/** The specified DBI was changed unexpectedly */
 #define MDB_BAD_DBI		(-30780)
-	/** Unexpected problem - txn should abort */
-#define MDB_PROBLEM		(-30779)
 	/** The last defined error code */
-#define MDB_LAST_ERRCODE	MDB_PROBLEM
+#define MDB_LAST_ERRCODE	MDB_BAD_DBI
 /** @} */
 
 /** @brief Statistics for a database in the environment */
@@ -720,7 +696,6 @@ int  mdb_env_copyfd(MDB_env *env, mdb_filehandle_t fd);
 	 *	<li>#MDB_CP_COMPACT - Perform compaction while copying: omit free
 	 *		pages and sequentially renumber all pages in output. This option
 	 *		consumes more CPU and runs more slowly than the default.
-	 *		Currently it fails if the environment has suffered a page leak.
 	 * </ul>
 	 * @return A non-zero error value on failure and 0 on success.
 	 */
@@ -835,10 +810,6 @@ int  mdb_env_get_flags(MDB_env *env, unsigned int *flags);
 int  mdb_env_get_path(MDB_env *env, const char **path);
 
 	/** @brief Return the filedescriptor for the given environment.
-	 *
-	 * This function may be called after fork(), so the descriptor can be
-	 * closed before exec*().  Other LMDB file descriptors have FD_CLOEXEC.
-	 * (Until LMDB 0.9.18, only the lockfile had that.)
 	 *
 	 * @param[in] env An environment handle returned by #mdb_env_create()
 	 * @param[out] fd Address of a mdb_filehandle_t to contain the descriptor.
@@ -1141,16 +1112,14 @@ int  mdb_txn_renew(MDB_txn *txn);
 	 *		keys must be unique and may have only a single data item.
 	 *	<li>#MDB_INTEGERKEY
 	 *		Keys are binary integers in native byte order, either unsigned int
-	 *		or #mdb_size_t, and will be sorted as such.
-	 *		(lmdb expects 32-bit int <= size_t <= 32/64-bit mdb_size_t.)
+	 *		or size_t, and will be sorted as such.
 	 *		The keys must all be of the same size.
 	 *	<li>#MDB_DUPFIXED
 	 *		This flag may only be used in combination with #MDB_DUPSORT. This option
 	 *		tells the library that the data items for this database are all the same
 	 *		size, which allows further optimizations in storage and retrieval. When
-	 *		all data items are the same size, the #MDB_GET_MULTIPLE, #MDB_NEXT_MULTIPLE
-	 *		and #MDB_PREV_MULTIPLE cursor operations may be used to retrieve multiple
-	 *		items at once.
+	 *		all data items are the same size, the #MDB_GET_MULTIPLE and #MDB_NEXT_MULTIPLE
+	 *		cursor operations may be used to retrieve multiple items at once.
 	 *	<li>#MDB_INTEGERDUP
 	 *		This option specifies that duplicate data items are binary integers,
 	 *		similar to #MDB_INTEGERKEY keys.
@@ -1555,10 +1524,6 @@ int  mdb_cursor_put(MDB_cursor *cursor, MDB_val *key, MDB_val *data,
 	/** @brief Delete current key/data pair
 	 *
 	 * This function deletes the key/data pair to which the cursor refers.
-	 * This does not invalidate the cursor, so operations such as MDB_NEXT
-	 * can still be used on it.
-	 * Both MDB_NEXT and MDB_GET_CURRENT will return the same record after
-	 * this operation.
 	 * @param[in] cursor A cursor handle returned by #mdb_cursor_open()
 	 * @param[in] flags Options for this operation. This parameter
 	 * must be set to 0 or one of the values described here.

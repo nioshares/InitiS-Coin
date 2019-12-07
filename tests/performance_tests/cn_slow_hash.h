@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
@@ -62,7 +63,7 @@ public:
   bool test()
   {
     crypto::hash hash;
-    crypto::cn_slow_hash(&m_data, sizeof(m_data), hash,crypto::cn_slow_hash_type::heavy_v0);
+    crypto::cn_slow_hash(&m_data, sizeof(m_data), hash);
     return hash == m_expected_hash;
   }
 

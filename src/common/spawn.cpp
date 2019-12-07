@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2018, The Monero Project
 // 
 // All rights reserved.
@@ -35,15 +36,11 @@
 #include <windows.h>
 #else
 #include <sys/wait.h>
-#include <signal.h>
 #endif
 
 #include "misc_log_ex.h"
 #include "util.h"
 #include "spawn.h"
-
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "spawn"
 
 namespace tools
 {
@@ -118,10 +115,7 @@ int spawn(const char *filename, const std::vector<std::string>& args, bool wait)
   if (pid > 0)
   {
     if (!wait)
-    {
-      signal(SIGCHLD, SIG_IGN);
       return 0;
-    }
 
     while (1)
     {

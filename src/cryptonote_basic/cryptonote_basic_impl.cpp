@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 //
 // All rights reserved.
 //
@@ -41,12 +41,11 @@ using namespace epee;
 #include "misc_language.h"
 #include "common/base58.h"
 #include "crypto/hash.h"
-#include "int-util.h"
+#include "common/int-util.h"
 #include "common/dns_utils.h"
-#include "common/initi.h"
 
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "cn"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "cn"
 
 namespace cryptonote {
 
@@ -88,33 +87,28 @@ namespace cryptonote {
     return CRYPTONOTE_MAX_TX_SIZE;
   }
   //-----------------------------------------------------------------------------------------------
-  bool get_base_block_reward(size_t median_weight, size_t current_block_weight, uint64_t already_generated_coins, uint64_t &reward, uint8_t version, uint64_t height) {
+  bool get_block_reward(size_t median_weight, size_t current_block_weight, uint64_t already_generated_coins, uint64_t &reward, uint8_t version, uint64_t height) {
+    static_assert(DIFFICULTY_TARGET_V2%30==0&&DIFFICULTY_TARGET_V1%30==0,"difficulty targets must be a multiple of 30");
 
-
-    //premine reward 100%
     if (height == 2)
     {
-      reward = 1680000000000000;
+      reward = GENESIS_TX_REWARD;
       return true;
     }
 /*
-	if(height>=56500)
-	{
-		reward = COIN * 2;
-		return true;
-	}
+    if (!already_generated_coins) {
+      reward = GENESIS_TX_REWARD;
+      return true;
+    }
 */
-	static_assert(DIFFICULTY_TARGET_V2%30==0&&DIFFICULTY_TARGET_V1%30==0,"difficulty targets must be a multiple of 30");
     const int target = version < 2 ? DIFFICULTY_TARGET_V1 : DIFFICULTY_TARGET_V2;
     const int target_minutes = target / 60;
     const int emission_speed_factor = EMISSION_SPEED_FACTOR_PER_MINUTE - (target_minutes-1);
 
     uint64_t base_reward = (MONEY_SUPPLY - already_generated_coins) >> emission_speed_factor;
-    if (base_reward < FINAL_SUBSIDY_PER_MINUTE*target_minutes)
-    {
+    if (base_reward < FINAL_SUBSIDY_PER_MINUTE*target_minutes) {
       base_reward = FINAL_SUBSIDY_PER_MINUTE*target_minutes;
     }
-
 
     uint64_t full_reward_zone = get_min_block_weight(version);
 
@@ -340,13 +334,13 @@ namespace cryptonote {
 }
 
 //--------------------------------------------------------------------------------
-bool parse_hash256(const std::string &str_hash, crypto::hash& hash)
+bool parse_hash256(const std::string str_hash, crypto::hash& hash)
 {
   std::string buf;
   bool res = epee::string_tools::parse_hexstr_to_binbuff(str_hash, buf);
   if (!res || buf.size() != sizeof(crypto::hash))
   {
-    MERROR("invalid hash format: " << str_hash);
+    std::cout << "invalid hash format: <" << str_hash << '>' << std::endl;
     return false;
   }
   else

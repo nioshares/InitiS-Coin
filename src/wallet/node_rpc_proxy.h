@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2017-2018, The Monero Project
 // 
 // All rights reserved.
@@ -28,11 +29,11 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <boost/thread/mutex.hpp>
 #include "include_base_utils.h"
 #include "net/http_client.h"
-#include "rpc/core_rpc_server_commands_defs.h"
 
 namespace tools
 {
@@ -40,7 +41,7 @@ namespace tools
 class NodeRPCProxy
 {
 public:
-  NodeRPCProxy(epee::net_utils::http::http_simple_client &http_client, boost::mutex &mutex);
+  NodeRPCProxy(std::shared_ptr<epee::net_utils::http::http_simple_client> client, boost::mutex &mutex);
 
   void invalidate();
 
@@ -52,30 +53,12 @@ public:
   boost::optional<std::string> get_earliest_height(uint8_t version, uint64_t &earliest_height) const;
   boost::optional<std::string> get_dynamic_base_fee_estimate(uint64_t grace_blocks, uint64_t &fee) const;
   boost::optional<std::string> get_fee_quantization_mask(uint64_t &fee_quantization_mask) const;
-  boost::optional<uint8_t>     get_hardfork_version() const;
-
-  std::vector<cryptonote::COMMAND_RPC_GET_MASTER_NODES::response::entry>             get_master_nodes(std::vector<std::string> const &pubkeys, boost::optional<std::string> &failed) const;
-  std::vector<cryptonote::COMMAND_RPC_GET_MASTER_NODES::response::entry>             get_all_master_nodes(boost::optional<std::string> &failed) const;
-  std::vector<cryptonote::COMMAND_RPC_GET_MASTER_NODES::response::entry>             get_contributed_master_nodes(const std::string &contributor, boost::optional<std::string> &failed) const;
-  std::vector<cryptonote::COMMAND_RPC_GET_MASTER_NODE_BLACKLISTED_KEY_IMAGES::entry> get_master_node_blacklisted_key_images(boost::optional<std::string> &failed) const;
 
 private:
   boost::optional<std::string> get_info() const;
 
-  epee::net_utils::http::http_simple_client &m_http_client;
+  std::shared_ptr<epee::net_utils::http::http_simple_client> m_http_client;
   boost::mutex &m_daemon_rpc_mutex;
-
-  mutable uint64_t m_master_node_blacklisted_key_images_cached_height;
-  mutable std::vector<cryptonote::COMMAND_RPC_GET_MASTER_NODE_BLACKLISTED_KEY_IMAGES::entry> m_master_node_blacklisted_key_images;
-
-  bool update_all_master_nodes_cache(uint64_t height, boost::optional<std::string> &failed) const;
-
-  mutable uint64_t m_all_master_nodes_cached_height;
-  mutable std::vector<cryptonote::COMMAND_RPC_GET_MASTER_NODES::response::entry> m_all_master_nodes;
-
-  mutable uint64_t m_contributed_master_nodes_cached_height;
-  mutable std::string m_contributed_master_nodes_cached_address;
-  mutable std::vector<cryptonote::COMMAND_RPC_GET_MASTER_NODES::response::entry> m_contributed_master_nodes;
 
   mutable uint64_t m_height;
   mutable uint64_t m_earliest_height[256];

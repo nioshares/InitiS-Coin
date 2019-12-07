@@ -1,5 +1,5 @@
+// Copyright (c) 2018-2019, CUT coin
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The InitiS Project
 // 
 // All rights reserved.
 // 
@@ -33,11 +33,8 @@
 #include "string_tools.h"
 #include "daemon/command_server.h"
 
-#include "common/initis_integration_test_hooks.h"
-
-
-#undef INITIS_DEFAULT_LOG_CATEGORY
-#define INITIS_DEFAULT_LOG_CATEGORY "daemon"
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace daemonize {
 
@@ -68,7 +65,6 @@ t_command_server::t_command_server(
   m_command_lookup.set_handler(
       "print_pl"
     , std::bind(&t_command_parser_executor::print_peer_list, &m_parser, p::_1)
-    , "print_pl [white] [gray] [<limit>]"
     , "Print the current peer list."
     );
   m_command_lookup.set_handler(
@@ -100,58 +96,16 @@ t_command_server::t_command_server(
     , "Print a given transaction."
     );
   m_command_lookup.set_handler(
-      "print_quorum_state"
-    , std::bind(&t_command_parser_executor::print_quorum_state, &m_parser, p::_1)
-    , "print_quorum_state <height>"
-    , "Print the quorum state for the block height."
-    );
-  m_command_lookup.set_handler(
-      "print_mn_key"
-    , std::bind(&t_command_parser_executor::print_mn_key, &m_parser, p::_1)
-    , "print_mn_key"
-    , "Print this daemon's master node key, if it is one and launched in master node mode."
-    );
-  m_command_lookup.set_handler(
-      "print_sr"
-    , std::bind(&t_command_parser_executor::print_sr, &m_parser, p::_1)
-    , "print_sr <height>"
-    , "Print the staking requirement for the height."
-    );
-  m_command_lookup.set_handler(
-      "prepare_registration"
-    , std::bind(&t_command_parser_executor::prepare_registration, &m_parser)
-    , "prepare_registration"
-    , "Interactive prompt to prepare a master node registration command. The resulting registration command can be run in the command-line wallet to send the registration to the blockchain."
-    );
-  m_command_lookup.set_handler(
-      "print_mn"
-    , std::bind(&t_command_parser_executor::print_mn, &m_parser, p::_1)
-    , "print_mn [<pubkey> [...]] [+json]"
-    , "Print master node registration info for the current height"
-    );
-  m_command_lookup.set_handler(
-      "print_mn_status"
-    , std::bind(&t_command_parser_executor::print_mn_status, &m_parser, p::_1)
-    , "print_mn_status [+json]"
-    , "Print master node registration info for this master node"
-    );
-  m_command_lookup.set_handler(
       "is_key_image_spent"
     , std::bind(&t_command_parser_executor::is_key_image_spent, &m_parser, p::_1)
     , "is_key_image_spent <key_image>"
     , "Print whether a given key image is in the spent key images set."
     );
   m_command_lookup.set_handler(
-      "start_mining"
-    , std::bind(&t_command_parser_executor::start_mining, &m_parser, p::_1)
-    , "start_mining <addr> [<threads>] [do_background_mining] [ignore_battery]"
-    , "Start mining for specified address. Defaults to 1 thread and no background mining."
-    );
-  m_command_lookup.set_handler(
-      "stop_mining"
-    , std::bind(&t_command_parser_executor::stop_mining, &m_parser, p::_1)
-    , "Stop mining."
-    );
+      "staking_status"
+      , std::bind(&t_command_parser_executor::show_status, &m_parser, p::_1)
+      , "Show current mining status."
+  );
   m_command_lookup.set_handler(
       "print_pool"
     , std::bind(&t_command_parser_executor::print_transaction_pool_long, &m_parser, p::_1)
@@ -246,12 +200,12 @@ t_command_server::t_command_server(
     m_command_lookup.set_handler(
       "start_save_graph"
     , std::bind(&t_command_parser_executor::start_save_graph, &m_parser, p::_1)
-    , "Start saving data for dr initi."
+    , "Start saving data for dr monero."
     );
     m_command_lookup.set_handler(
       "stop_save_graph"
     , std::bind(&t_command_parser_executor::stop_save_graph, &m_parser, p::_1)
-    , "Stop saving data for dr initi."
+    , "Stop saving data for dr monero."
     );
     m_command_lookup.set_handler(
       "hard_fork_info"
@@ -323,25 +277,9 @@ t_command_server::t_command_server(
     , "Print information about the blockchain sync state."
     );
     m_command_lookup.set_handler(
-      "pop_blocks"
-    , std::bind(&t_command_parser_executor::pop_blocks, &m_parser, p::_1)
-    , "pop_blocks <nblocks>"
-    , "Remove blocks from end of blockchain"
-    );
-    m_command_lookup.set_handler(
       "version"
     , std::bind(&t_command_parser_executor::version, &m_parser, p::_1)
     , "Print version information."
-    );
-    m_command_lookup.set_handler(
-      "prune_blockchain"
-    , std::bind(&t_command_parser_executor::prune_blockchain, &m_parser, p::_1)
-    , "Prune the blockchain."
-    );
-    m_command_lookup.set_handler(
-      "check_blockchain_pruning"
-    , std::bind(&t_command_parser_executor::check_blockchain_pruning, &m_parser, p::_1)
-    , "Check the blockchain pruning."
     );
 }
 
@@ -360,46 +298,12 @@ bool t_command_server::process_command_vec(const std::vector<std::string>& cmd)
   return result;
 }
 
-#if defined(INITIS_ENABLE_INTEGRATION_TEST_HOOKS)
-#include <thread>
-#endif
-
 bool t_command_server::start_handling(std::function<void(void)> exit_handler)
 {
   if (m_is_rpc) return false;
 
-#if defined(INITIS_ENABLE_INTEGRATION_TEST_HOOKS)
-  auto handle_shared_mem_ins_and_outs = [&]()
-  {
-    // TODO(doyle): Hack, don't hook into input until the daemon has completely initialised, i.e. you can print the status
-    while(!initi::core_is_idle) {}
-    mlog_set_categories("");
-
-    for (;;)
-    {
-      initi::fixed_buffer const input = initi::read_from_stdin_shared_mem();
-      std::vector<std::string> args  = initi::separate_stdin_to_space_delim_args(&input);
-      {
-        boost::unique_lock<boost::mutex> scoped_lock(initi::integration_test_mutex);
-        initi::use_standard_cout();
-        std::cout << input.data << std::endl;
-        initi::use_redirected_cout();
-      }
-
-      process_command_vec(args);
-      if (args.size() == 1 && args[0] == "exit")
-      {
-        initi::deinit_integration_test_context();
-        break;
-      }
-
-      initi::write_redirected_stdout_to_shared_mem();
-    }
-  };
-  static std::thread handle_remote_stdin_out_thread(handle_shared_mem_ins_and_outs);
-#endif
-
   m_command_lookup.start_handling("", get_commands_str(), exit_handler);
+
   return true;
 }
 
@@ -426,7 +330,7 @@ bool t_command_server::help(const std::vector<std::string>& args)
 std::string t_command_server::get_commands_str()
 {
   std::stringstream ss;
-  ss << "InitiS '" << INITIS_RELEASE_NAME << "' (v" << INITIS_VERSION_FULL << ")" << std::endl;
+  ss << "CUT Coin '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << std::endl;
   ss << "Commands: " << std::endl;
   std::string usage = m_command_lookup.get_usage();
   boost::replace_all(usage, "\n", "\n  ");
