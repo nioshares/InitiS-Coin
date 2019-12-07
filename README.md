@@ -1,33 +1,8 @@
-# CUT coin
-
-Copyright (c) 2018-2019 CUT coin.   
-Portions Copyright (c) 2012-2013 The Cryptonote developers.
-
-## Development resources
-
-- Web: [initis.org](https://initis.org)
-- Mail: [info@initis.org](mailto:info@initis.org)
-- GitHub: [https://github.com/initis](https://github.com/initis)
+# Initis S coin
 
 ## Build
 
-### IMPORTANT 
-
-## Introduction
-
-Concealed untraceable transactions coin that establishes a new level of privacy and usability.
-
-## License
-
-See [LICENSE](LICENSE).
-
-## Contributing
-
-If you want to help out, see [CONTRIBUTING](CONTRIBUTING.md) for a set of guidelines.
-
-## Scheduled software upgrades
-
-## Compiling CUT coin from source
+## Compiling Initi S coin from source
 
 ### Dependencies
 
@@ -78,7 +53,7 @@ Debug mode build also requires QT4, on Debian / Ubuntu
 
 Clone recursively to pull-in needed submodule(s):
 
-`$ git clone --recursive https://github.com/initis/initis`
+`$ git clone --recursive https://github.com/nioshares/InitiS-Coin`
 
 If you already have a repo cloned, initialize and update:
 
@@ -94,7 +69,7 @@ invokes cmake commands as needed.
 * Install the dependencies
 * Change to the root of the source code directory, change to the most recent release branch, and build:
 
-        cd initis
+        cd InitiS-Coin
         git checkout master
         make
 
