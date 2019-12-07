@@ -71,6 +71,7 @@ invokes cmake commands as needed.
 
         cd InitiS-Coin
         git checkout master
+        cmake . -DMANUAL_SUBMODULES=1
         make
 
     *Optional*: If your machine has several cores and enough memory, enable
